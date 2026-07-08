@@ -439,7 +439,7 @@ const IMGBB_KEY = "8eee43d5919b01ec061e0a6d5ae04fd4";
    PROIECT DE VIITOR: ca să adaugi Anul 2 (sau mai mulți ani), pur și simplu
    adaugi un obiect nou în albumYears, cu id și startYear diferite —
    toate cele 12 luni ale acelui an se generează automat mai jos. */
-const monthNames = ['Septembrie','Octombrie','Noiembrie','Decembrie','Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August'];
+const monthNames = ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
 
 const albumYears = [
   { id:'an-1', label:'Anul 1', startYear:2025 }
@@ -454,12 +454,11 @@ function generateMonthsData(){
   const months = [];
   albumYears.forEach(y=>{
     monthNames.forEach((name, i)=>{
-      const yearNum = i < 4 ? y.startYear : y.startYear + 1; // Sep-Dec = startYear, Ian-Aug = startYear+1
       months.push({
         id: `${y.id}-luna-${i+1}`,
         yearId: y.id,
         label: name,
-        sub: `${yearNum}`
+        sub: `${y.startYear}`
       });
     });
   });
