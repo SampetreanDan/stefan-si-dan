@@ -499,12 +499,15 @@ async function uploadPhotoToImgBB(file){
 }
 async function loadMonthPhotos(monthId){
   const snapshot = await db.collection('photos').where('monthId','==',monthId).get();
-  const photos = snapshot.docs.map(d=>d.data());
+  const photos = snapshot.docs.map(d=>({ id:d.id, ...d.data() }));
   photos.sort((a,b)=>a.timestamp - b.timestamp);
   return photos;
 }
 async function saveMonthPhoto(monthId, url, caption){
   await db.collection('photos').add({ monthId, url, caption, timestamp: Date.now() });
+}
+async function deleteMonthPhoto(id){
+  await db.collection('photos').doc(id).delete();
 }
 
 /* ============ ROUTER ============ */
