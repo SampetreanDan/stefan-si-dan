@@ -309,7 +309,12 @@
     background:var(--paper-dark); border-left:3px solid var(--accent); border-radius:4px;
     padding:12px 16px; font-size:0.92rem;
   }
-  .comment-item .c-meta{font-family:'Special Elite', monospace; font-size:0.72rem; color:var(--accent-deep); margin-bottom:4px;}
+ .comment-item .c-meta{font-family:'Special Elite', monospace; font-size:0.72rem; color:var(--accent-deep); margin-bottom:4px;}
+  .delete-btn{
+    display:block; margin-top:8px; font-family:'Special Elite', monospace; font-size:0.72rem;
+    background:none; border:none; color:#B0517A; cursor:pointer; padding:0; opacity:0.7;
+  }
+  .delete-btn:hover{ opacity:1; text-decoration:underline; }
   .comment-form textarea, .comment-form input{
     width:100%; font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line);
     border-radius:6px; padding:10px; font-size:0.9rem; margin-bottom:10px; background:var(--paper);
@@ -473,14 +478,16 @@ const poemsData = [
 /* ============ COMENTARII (Firestore) ============ */
 async function loadComments(poemId){
   const snapshot = await db.collection('comments').where('poemId','==',poemId).get();
-  const comments = snapshot.docs.map(d=>d.data());
+  const comments = snapshot.docs.map(d=>({ id:d.id, ...d.data() }));
   comments.sort((a,b)=>a.timestamp - b.timestamp);
   return comments;
 }
 async function saveComment(poemId, comment){
   await db.collection('comments').add({ poemId, ...comment, timestamp: Date.now() });
 }
-
+async function deleteComment(id){
+  await db.collection('comments').doc(id).delete();
+}
 /* ============ POZE (ImgBB + Firestore) ============ */
 async function uploadPhotoToImgBB(file){
   const formData = new FormData();
@@ -785,15 +792,24 @@ async function initMonthPhotos(monthId){
   const statusEl = document.getElementById('uploadStatus');
   if(!galleryDiv || !form) return;
 
-  async function refreshGallery(){
+async function refreshGallery(){
     const photos = await loadMonthPhotos(monthId);
     galleryDiv.innerHTML = photos.length
       ? photos.map(p=>`
         <div class="gallery-item">
           <div class="photo-slot small" style="background-image:url('${p.url}')"></div>
           <div class="card-caption">${p.caption || ''}</div>
+          <button class="delete-btn" data-id="${p.id}">🗑️ șterge</button>
         </div>`).join('')
       : '<p class="empty-note">Nicio poză adăugată încă aici — fiți primii.</p>';
+
+    galleryDiv.querySelectorAll('.delete-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm('Sigur vrei să ștergi această poză?')) return;
+        await deleteMonthPhoto(btn.dataset.id);
+        refreshGallery();
+      });
+    });
   }
 
   form.addEventListener('submit', async (e)=>{
@@ -821,8 +837,21 @@ async function initComments(poemId){
   async function refresh(){
     const comments = await loadComments(poemId);
     list.innerHTML = comments.length
-      ? comments.map(c=>`<div class="comment-item"><div class="c-meta">${c.name} · ${c.date}</div>${c.text}</div>`).join('')
+      ? comments.map(c=>`
+        <div class="comment-item">
+          <div class="c-meta">${c.name} · ${c.date}</div>
+          ${c.text}
+          <button class="delete-btn" data-id="${c.id}">🗑️ șterge</button>
+        </div>`).join('')
       : '<p class="empty-note">Niciun comentariu încă — fii primul.</p>';
+
+    list.querySelectorAll('.delete-btn').forEach(delBtn=>{
+      delBtn.addEventListener('click', async ()=>{
+        if(!confirm('Sigur vrei să ștergi acest comentariu?')) return;
+        await deleteComment(delBtn.dataset.id);
+        refresh();
+      });
+    });
   }
   btn.addEventListener('click', async ()=>{
     const name = document.getElementById('commentName').value.trim() || 'Anonim';
