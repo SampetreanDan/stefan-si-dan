@@ -279,9 +279,10 @@
   .card-caption{font-size:0.85rem; color:var(--ink); opacity:0.8; margin-top:4px; font-style:italic;}
 
   .poem-photo{width:100%; max-width:320px; border-radius:6px; border:1px solid var(--lilac-line); margin-bottom:20px;}
-  .poem-text{
-    font-family:'Playfair Display', serif; font-size:1.15rem; line-height:2; white-space:pre-line;
-    background:var(--paper); border:1px solid var(--lilac-line); border-radius:6px; padding:30px;
+.poem-text{
+    font-family:'Playfair Display', serif; font-size:0.95rem; line-height:1.9; white-space:pre-line;
+    background-color:var(--paper); background-size:cover; background-position:center;
+    border:1px solid var(--lilac-line); border-radius:6px; padding:30px;
     box-shadow:0 10px 24px var(--cream-shadow); font-style:italic; color:var(--ink);
   }
   .photo-gallery{display:grid; grid-template-columns:repeat(auto-fill, 150px); justify-content:start; gap:16px; margin-top:10px;}
@@ -884,10 +885,9 @@ async function initPoemDetail(id){
     contentDiv.innerHTML = '<p>Poezia nu a fost găsită.</p>';
     return;
   }
-  contentDiv.innerHTML = `
+contentDiv.innerHTML = `
     <h2 class="section-title">${poem.title}</h2>
-    ${poem.photo ? `<img class="poem-photo" src="${poem.photo}" alt="${poem.title}">` : ''}
-    <div class="poem-text">${poem.text}</div>
+    <div class="poem-text" style="${poem.photo ? `background-image:linear-gradient(rgba(245,241,251,0.93),rgba(245,241,251,0.93)), url('${poem.photo}')` : ''}">${poem.text}</div>
     <button class="delete-btn" id="deletePoemBtn">🗑️ șterge poezia</button>
   `;
   document.getElementById('deletePoemBtn').addEventListener('click', async ()=>{
