@@ -466,13 +466,8 @@ function generateMonthsData(){
 }
 const monthsData = generateMonthsData();
 
-const poemsData = [
-  { id:'poem-1', title:'Titlul poeziei 1', text:'Scrie aici versurile poeziei tale...\n\nPoți adăuga mai multe strofe,\nfiecare pe rândul ei.' },
-  { id:'poem-2', title:'Titlul poeziei 2', text:'Scrie aici versurile poeziei tale...' },
-  { id:'poem-3', title:'Titlul poeziei 3', text:'Scrie aici versurile poeziei tale...' }
-  // Adaugă oricâte poezii vrei, copiind blocul de mai sus.
-  // Pentru poză: { id:'poem-1', title:'...', photo:'poza.jpg', text:'...' }
-];
+/* Poeziile trăiesc acum în Firestore, nu mai sunt fixe în cod —
+   le adaugi direct de pe pagina de Poezii, ca la poze. */
 
 /* ============ COMENTARII (Firestore) ============ */
 async function loadComments(poemId){
@@ -486,6 +481,24 @@ async function saveComment(poemId, comment){
 }
 async function deleteComment(id){
   await db.collection('comments').doc(id).delete();
+}
+
+/* ============ POEZII (Firestore) ============ */
+async function loadPoems(){
+  const snapshot = await db.collection('poems').get();
+  const poems = snapshot.docs.map(d=>({ id:d.id, ...d.data() }));
+  poems.sort((a,b)=>a.timestamp - b.timestamp);
+  return poems;
+}
+async function loadPoem(id){
+  const doc = await db.collection('poems').doc(id).get();
+  return doc.exists ? { id:doc.id, ...doc.data() } : null;
+}
+async function savePoem(title, text, photo){
+  await db.collection('poems').add({ title, text, photo: photo || '', timestamp: Date.now() });
+}
+async function deletePoem(id){
+  await db.collection('poems').doc(id).delete();
 }
 /* ============ POZE (ImgBB + Firestore) ============ */
 async function uploadPhotoToImgBB(file){
@@ -565,13 +578,15 @@ async function router(){
   } else if(parts[0] === 'amintiri'){
     renderNav('amintiri');
     view.innerHTML = viewAniList();
-  } else if(parts[0] === 'poezii' && parts[1]){
+} else if(parts[0] === 'poezii' && parts[1]){
     renderNav('poezii');
     view.innerHTML = viewPoemDetail(parts[1]);
+    initPoemDetail(parts[1]);
     await initComments(parts[1]);
   } else if(parts[0] === 'poezii'){
     renderNav('poezii');
     view.innerHTML = viewPoezii();
+    initPoeziiList();
   } else if(parts[0] === 'jocuri'){
     renderNav('jocuri');
     view.innerHTML = viewJocuri();
@@ -699,7 +714,7 @@ function initAcasaGate(){
   });
 }
 
-function initHomeContent(){
+async function initHomeContent(){
 // Rândul cu lunile — doar anul curent, ca să nu încărcăm toți cei 100+ ani deodată
   const monthsScroll = document.getElementById('homeMonthsScroll');
   if(monthsScroll){
@@ -712,16 +727,17 @@ function initHomeContent(){
     applyFirstPhotoThumbnails(monthsScroll);
   }
 
-  // Caruselul de poezii
+ // Caruselul de poezii — poeziile reale din Firestore
   const track = document.getElementById('carouselTrack');
   if(track){
-    track.innerHTML = poemsData.map(p=>`
+    const poems = await loadPoems();
+    track.innerHTML = poems.length ? poems.map(p=>`
       <a class="carousel-card card" href="#/poezii/${p.id}">
         <div class="photo-slot" style="${p.photo?`background-image:url('${p.photo}')`:''}">
           ${p.photo?'':'<span class=\"icon\">✒️</span>'}
         </div>
         <div class="card-label">${p.title}</div>
-      </a>`).join('');
+      </a>`).join('') : '<p class="empty-note">Nicio poezie încă.</p>';
     document.getElementById('carouselPrev').addEventListener('click', ()=>{
       track.scrollBy({ left: -240, behavior:'smooth' });
     });
@@ -788,25 +804,67 @@ function viewPoezii(){
   return `
   <h2 class="section-title">Poezii pentru tine</h2>
   <p class="section-sub">// alege una ca s-o citești</p>
-  <div class="card-grid">
-    ${poemsData.map(p=>`
-      <a class="card" href="#/poezii/${p.id}">
-        <div class="photo-slot" style="${p.photo?`background-image:url('${p.photo}')`:''}">
-          ${p.photo?'':'<span class=\"icon\">✒️</span>'}
-        </div>
-        <div class="card-label">${p.title}</div>
-      </a>`).join('')}
-  </div>`;
+  <div class="card-grid" id="poemsList"><p class="empty-note">Se încarcă...</p></div>
+
+  <h3 style="font-size:1.15rem; color:var(--accent-deep); margin:32px 0 14px;">Adaugă o poezie nouă</h3>
+  <form class="upload-photo-form" id="addPoemForm">
+    <input type="text" id="poemTitleInput" placeholder="Titlul poeziei" required style="flex:1 1 100%;">
+    <textarea id="poemTextInput" rows="6" placeholder="Scrie versurile aici..." required
+      style="flex:1 1 100%; font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:10px; font-size:0.9rem; background:var(--paper-dark);"></textarea>
+    <input type="file" id="poemPhotoInput" accept="image/*">
+    <button type="submit">Adaugă poezia</button>
+    <div class="upload-status" id="poemAddStatus"></div>
+  </form>`;
+}
+
+async function initPoeziiList(){
+  const listDiv = document.getElementById('poemsList');
+  const form = document.getElementById('addPoemForm');
+
+  async function refresh(){
+    const poems = await loadPoems();
+    listDiv.innerHTML = poems.length
+      ? poems.map(p=>`
+        <a class="card" href="#/poezii/${p.id}">
+          <div class="photo-slot" style="${p.photo?`background-image:url('${p.photo}')`:''}">
+            ${p.photo?'':'<span class=\"icon\">✒️</span>'}
+          </div>
+          <div class="card-label">${p.title}</div>
+        </a>`).join('')
+      : '<p class="empty-note">Nicio poezie adăugată încă — scrie prima mai jos.</p>';
+  }
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const title = document.getElementById('poemTitleInput').value.trim();
+    const text = document.getElementById('poemTextInput').value.trim();
+    const fileInput = document.getElementById('poemPhotoInput');
+    const statusEl = document.getElementById('poemAddStatus');
+    if(!title || !text) return;
+    statusEl.textContent = 'Se salvează...';
+    try{
+      let photoUrl = '';
+      if(fileInput.files[0]){
+        photoUrl = await uploadPhotoToImgBB(fileInput.files[0]);
+      }
+      await savePoem(title, text, photoUrl);
+      document.getElementById('poemTitleInput').value = '';
+      document.getElementById('poemTextInput').value = '';
+      fileInput.value = '';
+      statusEl.textContent = 'Poezia a fost adăugată! 💜';
+      refresh();
+    }catch(err){
+      statusEl.textContent = 'Eroare: ' + err.message;
+    }
+  });
+
+  refresh();
 }
 
 function viewPoemDetail(id){
-  const p = poemsData.find(x=>x.id===id);
-  if(!p) return '<p>Poezia nu a fost găsită.</p>';
   return `
   <a class="back-link" href="#/poezii">← înapoi la Poezii</a>
-  <h2 class="section-title">${p.title}</h2>
-  ${p.photo? `<img class="poem-photo" src="${p.photo}" alt="${p.title}">` : ''}
-  <div class="poem-text">${p.text}</div>
+  <div id="poemContent"><p class="empty-note">Se încarcă...</p></div>
 
   <div class="comments-box">
     <h3 style="font-size:1.2rem; color:var(--accent-deep); margin-bottom:14px;">Lasă un cuvânt</h3>
@@ -817,6 +875,26 @@ function viewPoemDetail(id){
       <button id="submitComment">Trimite</button>
     </div>
   </div>`;
+}
+
+async function initPoemDetail(id){
+  const contentDiv = document.getElementById('poemContent');
+  const poem = await loadPoem(id);
+  if(!poem){
+    contentDiv.innerHTML = '<p>Poezia nu a fost găsită.</p>';
+    return;
+  }
+  contentDiv.innerHTML = `
+    <h2 class="section-title">${poem.title}</h2>
+    ${poem.photo ? `<img class="poem-photo" src="${poem.photo}" alt="${poem.title}">` : ''}
+    <div class="poem-text">${poem.text}</div>
+    <button class="delete-btn" id="deletePoemBtn">🗑️ șterge poezia</button>
+  `;
+  document.getElementById('deletePoemBtn').addEventListener('click', async ()=>{
+    if(!confirm('Sigur vrei să ștergi această poezie?')) return;
+    await deletePoem(id);
+    location.hash = '#/poezii';
+  });
 }
 
 async function initMonthPhotos(monthId){
