@@ -260,7 +260,7 @@
   }
   .back-link:hover{text-decoration:underline;}
 
- .card-grid{display:grid; grid-template-columns:repeat(auto-fill, 210px); justify-content:start; gap:26px;}
+  .card-grid{display:grid; grid-template-columns:repeat(auto-fill, 210px); justify-content:start; gap:26px;}
   .card{
     background:var(--paper); border:1px solid var(--lilac-line);
     box-shadow:0 10px 24px var(--cream-shadow); padding:16px; border-radius:4px;
@@ -279,7 +279,7 @@
   .card-caption{font-size:0.85rem; color:var(--ink); opacity:0.8; margin-top:4px; font-style:italic;}
 
   .poem-photo{width:100%; max-width:320px; border-radius:6px; border:1px solid var(--lilac-line); margin-bottom:20px;}
-.poem-text{
+  .poem-text{
     font-family:'Playfair Display', serif; font-size:0.95rem; line-height:1.9; white-space:pre-line;
     background-color:var(--paper); background-size:cover; background-position:center;
     border:1px solid var(--lilac-line); border-radius:6px; padding:30px;
@@ -302,7 +302,7 @@
     border:none; padding:10px 22px; border-radius:999px; cursor:pointer;
   }
   .upload-photo-form button:hover{ background:var(--accent-deep); }
-.upload-status{ width:100%; font-size:0.82rem; color:var(--accent-deep); font-style:italic; }
+  .upload-status{ width:100%; font-size:0.82rem; color:var(--accent-deep); font-style:italic; }
 
   .lightbox{
     display:none; position:fixed; inset:0; z-index:300;
@@ -326,7 +326,7 @@
     background:var(--paper-dark); border-left:3px solid var(--accent); border-radius:4px;
     padding:12px 16px; font-size:0.92rem;
   }
- .comment-item .c-meta{font-family:'Special Elite', monospace; font-size:0.72rem; color:var(--accent-deep); margin-bottom:4px;}
+  .comment-item .c-meta{font-family:'Special Elite', monospace; font-size:0.72rem; color:var(--accent-deep); margin-bottom:4px;}
   .delete-btn{
     display:block; margin-top:8px; font-family:'Special Elite', monospace; font-size:0.72rem;
     background:none; border:none; color:#B0517A; cursor:pointer; padding:0; opacity:0.7;
@@ -419,7 +419,7 @@
   <button class="lightbox-close" id="lightboxClose">✕</button>
   <img id="lightboxImg" src="" alt="">
 </div>
-  
+
 <script>
 /* ============ FIREBASE + IMGBB ============ */
 const firebaseConfig = {
@@ -450,7 +450,7 @@ const albumYears = [
 for(let i=2027, num=2; i<=2126; i++, num++){
   albumYears.push({ id:`an-${num}`, label:`Anul ${num}`, startYear:i });
 }
-  
+
 function generateMonthsData(){
   const months = [];
   albumYears.forEach(y=>{
@@ -579,7 +579,7 @@ async function router(){
   } else if(parts[0] === 'amintiri'){
     renderNav('amintiri');
     view.innerHTML = viewAniList();
-} else if(parts[0] === 'poezii' && parts[1]){
+  } else if(parts[0] === 'poezii' && parts[1]){
     renderNav('poezii');
     view.innerHTML = viewPoemDetail(parts[1]);
     initPoemDetail(parts[1]);
@@ -598,7 +598,7 @@ async function router(){
     initAcasaGate();
   }
 }
-  
+
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', router);
 
@@ -620,7 +620,7 @@ document.addEventListener('click', function(e){
 /* ============ VIEWS ============ */
 function viewAcasa(){
   return `
- <div id="pixelGateWrap">
+  <div id="pixelGateWrap">
     <div class="pixel-gate" id="pixelGate">
       <div class="pixel-hearts">♥ ♥ ♥ ♥ ♥</div>
       <div class="pixel-title">saluuutii tutii frutii 🌸 </div>
@@ -716,7 +716,7 @@ function initAcasaGate(){
 }
 
 async function initHomeContent(){
-// Rândul cu lunile — doar anul curent, ca să nu încărcăm toți cei 100+ ani deodată
+  // Rândul cu lunile — doar anul curent, ca să nu încărcăm toți cei 100+ ani deodată
   const monthsScroll = document.getElementById('homeMonthsScroll');
   if(monthsScroll){
     const currentYearMonths = monthsData.filter(m=>m.yearId===albumYears[0].id);
@@ -728,7 +728,7 @@ async function initHomeContent(){
     applyFirstPhotoThumbnails(monthsScroll);
   }
 
- // Caruselul de poezii — poeziile reale din Firestore
+  // Caruselul de poezii — poeziile reale din Firestore
   const track = document.getElementById('carouselTrack');
   if(track){
     const poems = await loadPoems();
@@ -760,7 +760,7 @@ function viewAniList(){
       <a class="card" href="#/amintiri/${y.id}">
         <div class="photo-slot"><span class="icon">📅</span></div>
         <div class="card-label">${y.label}</div>
-        <div class="card-caption">Începe din Septembrie ${y.startYear}</div>
+        <div class="card-caption">Începe din Ianuarie ${y.startYear}</div>
       </a>`).join('')}
   </div>`;
 }
@@ -885,7 +885,7 @@ async function initPoemDetail(id){
     contentDiv.innerHTML = '<p>Poezia nu a fost găsită.</p>';
     return;
   }
-contentDiv.innerHTML = `
+  contentDiv.innerHTML = `
     <h2 class="section-title">${poem.title}</h2>
     <div class="poem-text" style="${poem.photo ? `background-image:linear-gradient(rgba(245,241,251,0.93),rgba(245,241,251,0.93)), url('${poem.photo}')` : ''}">${poem.text}</div>
     <button class="delete-btn" id="deletePoemBtn">🗑️ șterge poezia</button>
@@ -905,7 +905,7 @@ async function initMonthPhotos(monthId){
   const statusEl = document.getElementById('uploadStatus');
   if(!galleryDiv || !form) return;
 
-async function refreshGallery(){
+  async function refreshGallery(){
     const photos = await loadMonthPhotos(monthId);
     galleryDiv.innerHTML = photos.length
       ? photos.map(p=>`
