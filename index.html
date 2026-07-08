@@ -150,10 +150,10 @@
   @keyframes pixelBlink{ 0%,100%{opacity:1;} 50%{opacity:0.55;} }
   .pixel-title{
     font-family:'Press Start 2P', monospace;
-    font-size:1.8rem;
+    font-size:clamp(2.2rem, 6vw, 4.2rem);
     color:#F5F1FB;
-    text-shadow: 3px 3px 0 var(--accent-deep);
-    margin-bottom:22px;
+    text-shadow: 4px 4px 0 var(--accent-deep);
+    margin-bottom:28px;
     line-height:1.6;
   }
   .pixel-question{
@@ -509,20 +509,29 @@ function initAcasaGate(){
   const noBtn = document.getElementById('pixelNo');
   if(!yesBtn) return;
 
-  let dodgeCount = 0;
+let dodgeCount = 0;
+  const noMessages = [
+    'heeei, ce faci?!?!?!?!',
+    'degeaba incerci ;)))',
+    'iibituleeee, nu e voie, caca'
+  ];
   noBtn.addEventListener('mouseenter', ()=>{
     dodgeCount++;
-    const row = noBtn.parentElement;
-    const maxX = row.clientWidth - noBtn.offsetWidth - 10;
-    const maxY = row.clientHeight - noBtn.offsetHeight - 10;
-    const randX = Math.floor(Math.random()*maxX);
-    const randY = Math.floor(Math.random()*maxY);
-    noBtn.style.position = 'absolute';
+    const btnW = noBtn.offsetWidth;
+    const btnH = noBtn.offsetHeight;
+    const margin = 20;
+    const maxX = window.innerWidth - btnW - margin*2;
+    const maxY = window.innerHeight - btnH - margin*2;
+    const randX = margin + Math.floor(Math.random()*maxX);
+    const randY = margin + Math.floor(Math.random()*maxY);
+    noBtn.style.position = 'fixed';
     noBtn.style.left = randX+'px';
     noBtn.style.top = randY+'px';
-    if(dodgeCount > 4){
-      noBtn.textContent = 'BINE, BINE 🥺';
-    }
+    noBtn.style.zIndex = '210';
+
+    if(dodgeCount === 3){ noBtn.textContent = noMessages[0]; noBtn.style.fontSize = '0.65rem'; }
+    else if(dodgeCount === 6){ noBtn.textContent = noMessages[1]; noBtn.style.fontSize = '0.65rem'; }
+    else if(dodgeCount >= 9){ noBtn.textContent = noMessages[2]; noBtn.style.fontSize = '0.6rem'; }
   });
 
   yesBtn.addEventListener('click', ()=>{
