@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pentru Ștefan — Vederi de acasă</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Special+Elite&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Special+Elite&family=Poppins:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
   :root{
     --paper:#F5F1FB;
@@ -111,6 +111,76 @@
   .route-line{margin-top:26px; display:flex; align-items:center; gap:10px; font-family:'Special Elite', monospace; font-size:0.8rem; color:var(--accent-deep);}
   .route-line .dots{flex:1; border-top:2px dotted var(--lilac-line); position:relative; height:1px;}
   .route-line .dots::after{content:"✈"; position:absolute; top:-11px; left:50%; transform:translateX(-50%); font-size:0.9rem; color:var(--accent);}
+
+  /* PIXEL WELCOME GATE */
+  .pixel-gate{
+    background: linear-gradient(160deg, #2A1F45 0%, #3B2E6B 55%, #4E3A8C 100%);
+    border:4px solid var(--accent-deep);
+    box-shadow: 0 0 0 4px #F5F1FB, 0 18px 40px var(--cream-shadow);
+    border-radius:4px;
+    padding:50px 30px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    image-rendering:pixelated;
+  }
+  .pixel-gate::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, transparent 3px, transparent 6px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, transparent 3px, transparent 6px);
+    pointer-events:none;
+  }
+  .pixel-hearts{
+    font-family:'Press Start 2P', monospace;
+    font-size:1.4rem;
+    letter-spacing:8px;
+    color:#E8A6D0;
+    margin-bottom:22px;
+    animation: pixelBlink 1.6s steps(2) infinite;
+  }
+  @keyframes pixelBlink{ 0%,100%{opacity:1;} 50%{opacity:0.55;} }
+  .pixel-title{
+    font-family:'Press Start 2P', monospace;
+    font-size:1.8rem;
+    color:#F5F1FB;
+    text-shadow: 3px 3px 0 var(--accent-deep);
+    margin-bottom:22px;
+    line-height:1.6;
+  }
+  .pixel-question{
+    font-family:'Press Start 2P', monospace;
+    font-size:0.72rem;
+    color:#E4D9F5;
+    line-height:2;
+    max-width:38ch;
+    margin:0 auto 34px;
+  }
+  .pixel-btn-row{
+    position:relative;
+    display:flex; justify-content:center; gap:24px;
+    height:70px;
+  }
+  .pixel-btn{
+    font-family:'Press Start 2P', monospace;
+    font-size:0.85rem;
+    padding:16px 28px;
+    background:#D9D2E8;
+    color:#2A1F45;
+    border:none;
+    border-top:3px solid #FFFFFF;
+    border-left:3px solid #FFFFFF;
+    border-right:3px solid #6B5A94;
+    border-bottom:3px solid #6B5A94;
+    cursor:pointer;
+    transition: transform .15s, left .18s ease, top .18s ease;
+  }
+  .pixel-btn:active{ transform:translateY(2px); }
+  #pixelNo{ position:relative; }
+  .pixel-gate-sub{
+    margin-top:26px; font-family:'Special Elite', monospace; font-size:0.72rem; color:#C9B8EA;
+  }
 
   h2.section-title{font-size:1.8rem; color:var(--accent-deep); margin-bottom:6px;}
   .section-sub{font-family:'Special Elite', monospace; font-size:0.85rem; color:var(--accent); margin-bottom:26px;}
@@ -345,6 +415,7 @@ async function router(){
   if(parts.length === 0){
     renderNav('');
     view.innerHTML = viewAcasa();
+    initAcasaGate();
   } else if(parts[0] === 'amintiri' && parts[1]){
     renderNav('amintiri');
     view.innerHTML = viewLunaDetail(parts[1]);
@@ -365,33 +436,96 @@ async function router(){
   } else {
     renderNav('');
     view.innerHTML = viewAcasa();
+    initAcasaGate();
   }
 }
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', router);
 
+// Navigare robustă: interceptăm clicurile pe linkurile interne (#/...)
+// ca să funcționeze corect chiar dacă mediul de previzualizare
+// nu declanșează implicit "hashchange".
+document.addEventListener('click', function(e){
+  const a = e.target.closest('a[href^="#/"], a[href="#/"]');
+  if(!a) return;
+  e.preventDefault();
+  const targetHash = a.getAttribute('href');
+  if(location.hash === targetHash){
+    router();
+  } else {
+    location.hash = targetHash;
+  }
+});
+
 /* ============ VIEWS ============ */
 function viewAcasa(){
   return `
-  <div class="postcard">
-    <div class="postcard-grid">
-      <div class="postcard-left">
-        <div class="eyebrow">Trimis din Cluj-Napoca, România</div>
-        <h1 class="hero-title">Un colț doar al nostru</h1>
-        <p class="hero-body">
-          Ai ajuns pe pagina noastră, Ștefan. Aici ți-am strâns cuvintele pe care ți le-am scris,
-          lunile pe care le-am trăit împreună (chiar și de la distanță) și câteva joculețe prostuțe
-          pentru serile în care ne e dor unul de celălalt. Ia-ți timp, citește, zâmbește — și lasă-mi
-          un cuvânt undeva pe aici, ca să știu că ai trecut pe la mine. 💜
-        </p>
-        <div class="route-line"><span>CLUJ-NAPOCA</span><span class="dots"></span><span>S.U.A.</span></div>
+  <div id="pixelGateWrap">
+    <div class="pixel-gate" id="pixelGate">
+      <div class="pixel-hearts">♥ ♥ ♥ ♥ ♥</div>
+      <div class="pixel-title">BUNĂ,<br>DRAGOSTEA MEA!</div>
+      <div class="pixel-question">Vrei să vezi o mică surpriză<br>pregătită pentru tine?</div>
+      <div class="pixel-btn-row">
+        <button class="pixel-btn" id="pixelYes">DA</button>
+        <button class="pixel-btn" id="pixelNo">NU</button>
       </div>
-      <div class="postcard-right">
-        <div class="stamp">💜</div>
-        <div class="postmark">CLUJ ❤ USA<br>MEREU MAI<br>APROAPE DECÂT PARE</div>
+      <div class="pixel-gate-sub">// apasă DA ca să intri</div>
+    </div>
+  </div>
+  <div id="acasaContent" style="display:none;">
+    <div class="postcard">
+      <div class="postcard-grid">
+        <div class="postcard-left">
+          <div class="eyebrow">Trimis din Cluj-Napoca, România</div>
+          <h1 class="hero-title">Un colț doar al nostru</h1>
+          <p class="hero-body">
+            Ai ajuns pe pagina noastră, Ștefan. Aici ți-am strâns cuvintele pe care ți le-am scris,
+            lunile pe care le-am trăit împreună (chiar și de la distanță) și câteva joculețe prostuțe
+            pentru serile în care ne e dor unul de celălalt. Ia-ți timp, citește, zâmbește — și lasă-mi
+            un cuvânt undeva pe aici, ca să știu că ai trecut pe la mine. 💜
+          </p>
+          <div class="route-line"><span>CLUJ-NAPOCA</span><span class="dots"></span><span>S.U.A.</span></div>
+        </div>
+        <div class="postcard-right">
+          <div class="stamp">💜</div>
+          <div class="postmark">CLUJ ❤ USA<br>MEREU MAI<br>APROAPE DECÂT PARE</div>
+        </div>
       </div>
     </div>
   </div>`;
+}
+
+function initAcasaGate(){
+  const gateWrap = document.getElementById('pixelGateWrap');
+  const content = document.getElementById('acasaContent');
+  const yesBtn = document.getElementById('pixelYes');
+  const noBtn = document.getElementById('pixelNo');
+  if(!yesBtn) return;
+
+  let dodgeCount = 0;
+  noBtn.addEventListener('mouseenter', ()=>{
+    dodgeCount++;
+    const row = noBtn.parentElement;
+    const maxX = row.clientWidth - noBtn.offsetWidth - 10;
+    const maxY = row.clientHeight - noBtn.offsetHeight - 10;
+    const randX = Math.floor(Math.random()*maxX);
+    const randY = Math.floor(Math.random()*maxY);
+    noBtn.style.position = 'absolute';
+    noBtn.style.left = randX+'px';
+    noBtn.style.top = randY+'px';
+    if(dodgeCount > 4){
+      noBtn.textContent = 'BINE, BINE 🥺';
+    }
+  });
+
+  yesBtn.addEventListener('click', ()=>{
+    gateWrap.style.transition = 'opacity .4s';
+    gateWrap.style.opacity = '0';
+    setTimeout(()=>{
+      gateWrap.style.display = 'none';
+      content.style.display = 'block';
+    }, 400);
+  });
 }
 
 function viewAmintiri(){
