@@ -803,11 +803,15 @@ async function refreshGallery(){
         </div>`).join('')
       : '<p class="empty-note">Nicio poză adăugată încă aici — fiți primii.</p>';
 
-    galleryDiv.querySelectorAll('.delete-btn').forEach(btn=>{
+      galleryDiv.querySelectorAll('.delete-btn').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
         if(!confirm('Sigur vrei să ștergi această poză?')) return;
-        await deleteMonthPhoto(btn.dataset.id);
-        refreshGallery();
+        try{
+          await deleteMonthPhoto(btn.dataset.id);
+          await refreshGallery();
+        }catch(err){
+          alert('Eroare la ștergere: ' + err.message);
+        }
       });
     });
   }
