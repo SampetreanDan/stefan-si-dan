@@ -435,58 +435,33 @@ const IMGBB_KEY = "8eee43d5919b01ec061e0a6d5ae04fd4";
 
 /* ============ DATE — completează aici cu conținutul vostru ============ */
 
-const monthsData = [
-  { id:'luna-1', label:'Luna 1', sub:'[numele lunii]',
-    photos:[
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' }
-    ]
-  },
-  { id:'luna-2', label:'Luna 2', sub:'[numele lunii]',
-    photos:[
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' }
-    ]
-  },
-  { id:'luna-3', label:'Luna 3', sub:'[numele lunii]',
-    photos:[
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' }
-    ]
-  },
-  { id:'luna-4', label:'Luna 4', sub:'[numele lunii]',
-    photos:[
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' }
-    ]
-  },
-  { id:'luna-5', label:'Luna 5', sub:'[numele lunii]',
-    photos:[
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' }
-    ]
-  },
-  { id:'luna-6', label:'Luna 6', sub:'[numele lunii]',
-    photos:[
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' },
-      { caption:'Scrie aici o mică amintire...' }
-    ]
-  }
-  // Poți adăuga oricâte luni vrei, copiind blocul de mai sus.
-  // Pentru fiecare poză poți adăuga: { src:'poza1.jpg', caption:'...' }
+/* Lunile relației voastre, începând din Septembrie 2025.
+   PROIECT DE VIITOR: ca să adaugi Anul 2 (sau mai mulți ani), pur și simplu
+   adaugi un obiect nou în albumYears, cu id și startYear diferite —
+   toate cele 12 luni ale acelui an se generează automat mai jos. */
+const monthNames = ['Septembrie','Octombrie','Noiembrie','Decembrie','Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August'];
+
+const albumYears = [
+  { id:'an-1', label:'Anul 1', startYear:2025 }
+  // { id:'an-2', label:'Anul 2', startYear:2026 },  <- exemplu pentru anul viitor
 ];
+
+function generateMonthsData(){
+  const months = [];
+  albumYears.forEach(y=>{
+    monthNames.forEach((name, i)=>{
+      const yearNum = i < 4 ? y.startYear : y.startYear + 1; // Sep-Dec = startYear, Ian-Aug = startYear+1
+      months.push({
+        id: `${y.id}-luna-${i+1}`,
+        yearId: y.id,
+        label: name,
+        sub: `${yearNum}`
+      });
+    });
+  });
+  return months;
+}
+const monthsData = generateMonthsData();
 
 const poemsData = [
   { id:'poem-1', title:'Titlul poeziei 1', text:'Scrie aici versurile poeziei tale...\n\nPoți adăuga mai multe strofe,\nfiecare pe rândul ei.' },
@@ -530,6 +505,25 @@ async function saveMonthPhoto(monthId, url, caption){
 async function deleteMonthPhoto(id){
   await db.collection('photos').doc(id).delete();
 }
+async function loadFirstMonthPhoto(monthId){
+  const photos = await loadMonthPhotos(monthId);
+  return photos.length ? photos[0].url : null;
+}
+async function applyFirstPhotoThumbnails(containerEl){
+  if(!containerEl) return;
+  const cards = containerEl.querySelectorAll('[data-monthid]');
+  for(const card of cards){
+    const monthId = card.dataset.monthid;
+    try{
+      const url = await loadFirstMonthPhoto(monthId);
+      if(url){
+        const slot = card.querySelector('.photo-slot');
+        slot.style.backgroundImage = `url('${url}')`;
+        slot.innerHTML = '';
+      }
+    }catch(e){}
+  }
+}
 
 /* ============ ROUTER ============ */
 const routes = [
@@ -553,18 +547,22 @@ async function router(){
   app.innerHTML = '<div class="view"></div>';
   const view = app.querySelector('.view');
 
-  if(parts.length === 0){
+if(parts.length === 0){
     renderNav('');
     view.innerHTML = viewAcasa();
     initAcasaGate();
-  } else if(parts[0] === 'amintiri' && parts[1]){
+  } else if(parts[0] === 'amintiri' && parts.length === 3){
     renderNav('amintiri');
-    view.innerHTML = viewLunaDetail(parts[1]);
-    initMonthPhotos(parts[1]);
+    view.innerHTML = viewLunaDetail(parts[1], parts[2]);
+    initMonthPhotos(parts[2]);
+  } else if(parts[0] === 'amintiri' && parts.length === 2){
+    renderNav('amintiri');
+    view.innerHTML = viewAnDetail(parts[1]);
+    applyFirstPhotoThumbnails(view);
   } else if(parts[0] === 'amintiri'){
     renderNav('amintiri');
-    view.innerHTML = viewAmintiri();
-  } else if(parts[0] === 'poezii' && parts[1]){
+    view.innerHTML = viewAniList();
+  } else if(parts[0] === 'poezii' && parts[1]){{
     renderNav('poezii');
     view.innerHTML = viewPoemDetail(parts[1]);
     await initComments(parts[1]);
@@ -699,15 +697,15 @@ function initAcasaGate(){
 
 function initHomeContent(){
   // Rândul cu lunile
+ // Rândul cu lunile
   const monthsScroll = document.getElementById('homeMonthsScroll');
   if(monthsScroll){
     monthsScroll.innerHTML = monthsData.map(m=>`
-      <a class="month-scroll-card card" href="#/amintiri/${m.id}">
-        <div class="photo-slot small" style="${m.photos[0] && m.photos[0].src?`background-image:url('${m.photos[0].src}')`:''}">
-          ${m.photos[0] && m.photos[0].src?'':'<span class=\"icon\">📷</span>'}
-        </div>
+      <a class="month-scroll-card card" href="#/amintiri/${m.yearId}/${m.id}" data-monthid="${m.id}">
+        <div class="photo-slot small"><span class="icon">📷</span></div>
         <div class="card-label">${m.label} — ${m.sub}</div>
       </a>`).join('');
+    applyFirstPhotoThumbnails(monthsScroll);
   }
 
   // Caruselul de poezii
@@ -732,24 +730,43 @@ function initHomeContent(){
   initGames();
 }
 
-function viewAmintiri(){
+function viewAniList(){
   return `
   <h2 class="section-title">Amintirile noastre</h2>
-  <p class="section-sub">// alege o lună ca să vezi pozele și poveștile ei</p>
+  <p class="section-sub">// alege un an ca să vezi lunile lui</p>
   <div class="card-grid">
-    ${monthsData.map(m=>`
-      <a class="card" href="#/amintiri/${m.id}">
-        <div class="photo-slot"><span class="icon">📷</span>${m.photos.length} poze</div>
-        <div class="card-label">${m.label} — ${m.sub}</div>
+    ${albumYears.map(y=>`
+      <a class="card" href="#/amintiri/${y.id}">
+        <div class="photo-slot"><span class="icon">📅</span></div>
+        <div class="card-label">${y.label}</div>
+        <div class="card-caption">Începe din Septembrie ${y.startYear}</div>
       </a>`).join('')}
   </div>`;
 }
 
-function viewLunaDetail(id){
+function viewAnDetail(yearId){
+  const y = albumYears.find(x=>x.id===yearId);
+  if(!y) return '<p>Anul nu a fost găsit.</p>';
+  const months = monthsData.filter(m=>m.yearId===yearId);
+  return `
+  <a class="back-link" href="#/amintiri">← înapoi la Ani</a>
+  <h2 class="section-title">${y.label}</h2>
+  <p class="section-sub">// alege o lună ca să vezi pozele și poveștile ei</p>
+  <div class="card-grid">
+    ${months.map(m=>`
+      <a class="card" href="#/amintiri/${yearId}/${m.id}" data-monthid="${m.id}">
+        <div class="photo-slot"><span class="icon">📷</span></div>
+        <div class="card-label">${m.label} — ${m.sub}</div>
+        <div class="card-caption">Dă click și răscolești prin amintirile noastre</div>
+      </a>`).join('')}
+  </div>`;
+}
+
+function viewLunaDetail(yearId, id){
   const m = monthsData.find(x=>x.id===id);
   if(!m) return '<p>Luna nu a fost găsită.</p>';
   return `
-  <a class="back-link" href="#/amintiri">← înapoi la Amintiri</a>
+  <a class="back-link" href="#/amintiri/${yearId}">← înapoi la ${albumYears.find(y=>y.id===yearId)?.label || 'An'}</a>
   <h2 class="section-title">${m.label} — ${m.sub}</h2>
   <p class="section-sub">// galeria acestei luni</p>
 
