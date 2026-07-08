@@ -284,8 +284,8 @@
     background:var(--paper); border:1px solid var(--lilac-line); border-radius:6px; padding:30px;
     box-shadow:0 10px 24px var(--cream-shadow); font-style:italic; color:var(--ink);
   }
-  .photo-gallery{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:20px; margin-top:10px;}
-  .gallery-item{background:var(--paper); border:1px solid var(--lilac-line); border-radius:6px; padding:12px; box-shadow:0 8px 18px var(--cream-shadow);}
+  .photo-gallery{display:grid; grid-template-columns:repeat(auto-fill, 150px); justify-content:start; gap:16px; margin-top:10px;}
+  .gallery-item{background:var(--paper); border:1px solid var(--lilac-line); border-radius:8px; padding:8px; box-shadow:0 8px 18px var(--cream-shadow); width:150px;}
 
   .upload-photo-form{
     margin-top:26px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;
@@ -731,17 +731,7 @@ function viewLunaDetail(id){
   <a class="back-link" href="#/amintiri">← înapoi la Amintiri</a>
   <h2 class="section-title">${m.label} — ${m.sub}</h2>
   <p class="section-sub">// galeria acestei luni</p>
-  <div class="photo-gallery">
-    ${m.photos.map(p=>`
-      <div class="gallery-item">
-        <div class="photo-slot small" style="${p.src?`background-image:url('${p.src}')`:''}">
-          ${p.src?'':'<span class=\"icon\">📷</span>Pune poza aici'}
-        </div>
-        <div class="card-caption">${p.caption}</div>
-      </div>`).join('')}
-  </div>
 
-  <h3 style="font-size:1.15rem; color:var(--accent-deep); margin:32px 0 14px;">Poze adăugate de voi</h3>
   <div class="photo-gallery" id="dynamicGallery"><p class="empty-note">Se încarcă...</p></div>
 
   <form class="upload-photo-form" id="uploadPhotoForm">
