@@ -301,7 +301,23 @@
     border:none; padding:10px 22px; border-radius:999px; cursor:pointer;
   }
   .upload-photo-form button:hover{ background:var(--accent-deep); }
-  .upload-status{ width:100%; font-size:0.82rem; color:var(--accent-deep); font-style:italic; }
+.upload-status{ width:100%; font-size:0.82rem; color:var(--accent-deep); font-style:italic; }
+
+  .lightbox{
+    display:none; position:fixed; inset:0; z-index:300;
+    background:rgba(20,14,35,0.92);
+    align-items:center; justify-content:center; padding:30px;
+  }
+  .lightbox.show{ display:flex; }
+  .lightbox img{
+    max-width:90vw; max-height:90vh; border-radius:8px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.5);
+  }
+  .lightbox-close{
+    position:absolute; top:24px; right:28px; background:none; border:none;
+    color:#F5F1FB; font-size:1.6rem; cursor:pointer;
+  }
+  .photo-slot{ cursor:pointer; }
 
   .comments-box{margin-top:30px;}
   .comment-list{display:flex; flex-direction:column; gap:12px; margin-bottom:18px;}
@@ -398,6 +414,11 @@
 -->
 <audio id="bgAudio" loop preload="none" src="muzica.mp3"></audio>
 
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose">✕</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+  
 <script>
 /* ============ FIREBASE + IMGBB ============ */
 const firebaseConfig = {
@@ -790,14 +811,22 @@ async function refreshGallery(){
     galleryDiv.innerHTML = photos.length
       ? photos.map(p=>`
         <div class="gallery-item">
-          <div class="photo-slot small" style="background-image:url('${p.url}')"></div>
+          <div class="photo-slot small" style="background-image:url('${p.url}')" data-url="${p.url}"></div>
           <div class="card-caption">${p.caption || ''}</div>
           <button class="delete-btn" data-id="${p.id}">🗑️ șterge</button>
         </div>`).join('')
       : '<p class="empty-note">Nicio poză adăugată încă aici — fiți primii.</p>';
 
-      galleryDiv.querySelectorAll('.delete-btn').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
+    galleryDiv.querySelectorAll('.photo-slot').forEach(slot=>{
+      slot.addEventListener('click', ()=>{
+        document.getElementById('lightboxImg').src = slot.dataset.url;
+        document.getElementById('lightbox').classList.add('show');
+      });
+    });
+
+    galleryDiv.querySelectorAll('.delete-btn').forEach(btn=>{
+      btn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
         if(!confirm('Sigur vrei să ștergi această poză?')) return;
         try{
           await deleteMonthPhoto(btn.dataset.id);
@@ -998,6 +1027,14 @@ function initGames(){
   customsForm.appendChild(submitBtn);
   submitBtn.addEventListener('click', ()=>{ document.getElementById('approvedStamp').classList.add('show'); });
 }
+
+/* ============ LIGHTBOX ============ */
+document.getElementById('lightboxClose').addEventListener('click', ()=>{
+  document.getElementById('lightbox').classList.remove('show');
+});
+document.getElementById('lightbox').addEventListener('click', (e)=>{
+  if(e.target.id === 'lightbox') document.getElementById('lightbox').classList.remove('show');
+});
 
 /* ============ MUSIC TOGGLE ============ */
 const musicBtn = document.getElementById('musicToggle');
