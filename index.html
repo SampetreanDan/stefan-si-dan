@@ -149,6 +149,12 @@
     font-size:clamp(1.7rem, 4vw, 2.7rem); color:#FFFFFF; margin-bottom:16px; line-height:1.3;
   }
   .hero-emotional-text{ max-width:62ch; line-height:1.75; font-size:1.02rem; color:#EDE6F7; }
+  .hero-edit-btn{
+    font-family:'Special Elite', monospace; font-size:0.75rem;
+    background:rgba(255,255,255,0.15); color:#F5F1FB; border:1px solid rgba(255,255,255,0.4);
+    padding:6px 14px; border-radius:999px; cursor:pointer; margin-top:14px; align-self:flex-start;
+  }
+  .hero-edit-btn:hover{ background:rgba(255,255,255,0.28); }
 
   /* RÂND LUNI (preview scroll) */
   .home-section{ margin-bottom:64px; }
@@ -504,6 +510,21 @@ async function deletePoem(id){
 async function updatePoem(id, updates){
   await db.collection('poems').doc(id).update(updates);
 }
+
+/* ============ HERO (Firestore) ============ */
+const DEFAULT_HERO = {
+  eyebrow: '4 luni împreună · mii de kilometri între noi',
+  title: 'Patru luni de dor, purtat cu drag',
+  text: 'Ștefan, azi facem 4 luni de când ești plecat, și tot atâtea luni în care distanța n-a reușit să ne schimbe nimic din ce simțim. Mi-e dor de tine în fiecare zi, dar sunt mândră de tine și de tot ce faci acolo. Derulează mai jos — ți-am strâns aici toate lunile noastre, poeziile scrise pentru tine, și câteva joculețe pentru serile în care ne e greu de la distanță.',
+  photo: ''
+};
+async function loadHero(){
+  const doc = await db.collection('site').doc('hero').get();
+  return doc.exists ? doc.data() : null;
+}
+async function saveHero(data){
+  await db.collection('site').doc('hero').set(data, { merge: true });
+}
 /* ============ POZE (ImgBB + Firestore) ============ */
 async function uploadPhotoToImgBB(file){
   const formData = new FormData();
@@ -639,16 +660,8 @@ function viewAcasa(){
 
     <section class="hero-section">
       <div class="hero-bg" id="heroBg"></div>
-      <div class="hero-bg-note">📷 Pune aici poza voastră de hero (hero.jpg)</div>
-      <div class="hero-overlay">
-        <div class="hero-eyebrow">4 luni împreună · mii de kilometri între noi</div>
-        <h1 class="hero-emotional-title">Patru luni de dor, purtat cu drag</h1>
-        <p class="hero-emotional-text">
-          Ștefan, azi facem 4 luni de când ești plecat, și tot atâtea luni în care distanța n-a reușit
-          să ne schimbe nimic din ce simțim. Mi-e dor de tine în fiecare zi, dar sunt mândră de tine
-          și de tot ce faci acolo. Derulează mai jos — ți-am strâns aici toate lunile noastre, poeziile
-          scrise pentru tine, și câteva joculețe pentru serile în care ne e greu de la distanță.
-        </p>
+      <div class="hero-overlay" id="heroOverlay">
+        <p class="empty-note" style="color:#EDE6F7;">Se încarcă...</p>
       </div>
     </section>
 
@@ -718,7 +731,71 @@ function initAcasaGate(){
   });
 }
 
+async function initHero(){
+  const overlay = document.getElementById('heroOverlay');
+  const heroBg = document.getElementById('heroBg');
+  if(!overlay) return;
+
+  async function renderView(){
+    const stored = await loadHero();
+    const hero = { ...DEFAULT_HERO, ...(stored || {}) };
+    overlay.innerHTML = `
+      <div class="hero-eyebrow">${hero.eyebrow}</div>
+      <h1 class="hero-emotional-title">${hero.title}</h1>
+      <p class="hero-emotional-text">${hero.text}</p>
+      <button class="hero-edit-btn" id="editHeroBtn">✏️ editează</button>
+    `;
+    if(hero.photo){
+      heroBg.style.backgroundImage = `linear-gradient(rgba(43,31,69,0.25), rgba(43,31,69,0.25)), url('${hero.photo}')`;
+      heroBg.style.backgroundSize = 'cover';
+      heroBg.style.backgroundPosition = 'center';
+    }
+    document.getElementById('editHeroBtn').addEventListener('click', ()=> renderEdit(hero));
+  }
+
+  function renderEdit(hero){
+    overlay.innerHTML = `
+      <form id="heroEditForm" style="display:flex; flex-direction:column; gap:10px;">
+        <input type="text" id="heroTitleInput" value="${hero.title.replace(/"/g,'&quot;')}" placeholder="Titlul"
+          style="font-family:'Playfair Display', serif; font-size:1.3rem; padding:10px; border-radius:6px; border:1.5px solid var(--lilac-line);">
+        <textarea id="heroTextInput" rows="5" placeholder="Textul emoțional"
+          style="font-family:'Poppins', sans-serif; font-size:0.95rem; padding:10px; border-radius:6px; border:1.5px solid var(--lilac-line);">${hero.text}</textarea>
+        <input type="file" id="heroPhotoInput" accept="image/*">
+        <span style="color:#EDE6F7; font-size:0.8rem; font-style:italic;">${hero.photo ? 'Lasă gol ca să păstrezi poza actuală' : 'Poți adăuga acum o poză de hero'}</span>
+        <div style="display:flex; gap:10px;">
+          <button type="submit" class="hero-edit-btn">Salvează</button>
+          <button type="button" id="cancelHeroEdit" class="hero-edit-btn">Renunță</button>
+        </div>
+        <div class="upload-status" id="heroEditStatus" style="color:#EDE6F7;"></div>
+      </form>
+    `;
+    document.getElementById('cancelHeroEdit').addEventListener('click', renderView);
+    document.getElementById('heroEditForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const title = document.getElementById('heroTitleInput').value.trim();
+      const text = document.getElementById('heroTextInput').value.trim();
+      const fileInput = document.getElementById('heroPhotoInput');
+      const statusEl = document.getElementById('heroEditStatus');
+      if(!title || !text) return;
+      statusEl.textContent = 'Se salvează...';
+      try{
+        const updates = { eyebrow: hero.eyebrow, title, text, photo: hero.photo || '' };
+        if(fileInput.files[0]){
+          updates.photo = await uploadPhotoToImgBB(fileInput.files[0]);
+        }
+        await saveHero(updates);
+        renderView();
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
+    });
+  }
+
+  renderView();
+}
+
 async function initHomeContent(){
+  initHero();
   // Rândul cu lunile — doar anul curent, ca să nu încărcăm toți cei 100+ ani deodată
   const monthsScroll = document.getElementById('homeMonthsScroll');
   if(monthsScroll){
@@ -880,7 +957,7 @@ function viewPoemDetail(id){
     </div>
   </div>`;
 }
-  
+
 async function initPoemDetail(id){
   const contentDiv = document.getElementById('poemContent');
 
