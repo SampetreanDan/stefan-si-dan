@@ -865,6 +865,22 @@ async function initPoeziiList(){
   refresh();
 }
 
+function viewPoemDetail(id){
+  return `
+  <a class="back-link" href="#/poezii">← înapoi la Poezii</a>
+  <div id="poemContent"><p class="empty-note">Se încarcă...</p></div>
+
+  <div class="comments-box">
+    <h3 style="font-size:1.2rem; color:var(--accent-deep); margin-bottom:14px;">Lasă un cuvânt</h3>
+    <div class="comment-list" id="commentList"></div>
+    <div class="comment-form">
+      <input type="text" id="commentName" placeholder="Numele tău">
+      <textarea id="commentText" rows="3" placeholder="Scrie ce simți..."></textarea>
+      <button id="submitComment">Trimite</button>
+    </div>
+  </div>`;
+}
+  
 async function initPoemDetail(id){
   const contentDiv = document.getElementById('poemContent');
 
