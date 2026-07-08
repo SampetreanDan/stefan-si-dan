@@ -501,6 +501,9 @@ async function savePoem(title, text, photo){
 async function deletePoem(id){
   await db.collection('poems').doc(id).delete();
 }
+async function updatePoem(id, updates){
+  await db.collection('poems').doc(id).update(updates);
+}
 /* ============ POZE (ImgBB + Firestore) ============ */
 async function uploadPhotoToImgBB(file){
   const formData = new FormData();
@@ -862,39 +865,66 @@ async function initPoeziiList(){
   refresh();
 }
 
-function viewPoemDetail(id){
-  return `
-  <a class="back-link" href="#/poezii">← înapoi la Poezii</a>
-  <div id="poemContent"><p class="empty-note">Se încarcă...</p></div>
-
-  <div class="comments-box">
-    <h3 style="font-size:1.2rem; color:var(--accent-deep); margin-bottom:14px;">Lasă un cuvânt</h3>
-    <div class="comment-list" id="commentList"></div>
-    <div class="comment-form">
-      <input type="text" id="commentName" placeholder="Numele tău">
-      <textarea id="commentText" rows="3" placeholder="Scrie ce simți..."></textarea>
-      <button id="submitComment">Trimite</button>
-    </div>
-  </div>`; 
-}
-
 async function initPoemDetail(id){
   const contentDiv = document.getElementById('poemContent');
-  const poem = await loadPoem(id);
-  if(!poem){
-    contentDiv.innerHTML = '<p>Poezia nu a fost găsită.</p>';
-    return;
+
+  async function renderView(){
+    const poem = await loadPoem(id);
+    if(!poem){
+      contentDiv.innerHTML = '<p>Poezia nu a fost găsită.</p>';
+      return;
+    }
+    contentDiv.innerHTML = `
+      <h2 class="section-title">${poem.title}</h2>
+      <div class="poem-text" style="${poem.photo ? `background-image:linear-gradient(rgba(245,241,251,0.93),rgba(245,241,251,0.93)), url('${poem.photo}')` : ''}">${poem.text}</div>
+      <button class="delete-btn" id="editPoemBtn" style="margin-right:18px;">✏️ editează</button>
+      <button class="delete-btn" id="deletePoemBtn">🗑️ șterge poezia</button>
+    `;
+    document.getElementById('deletePoemBtn').addEventListener('click', async ()=>{
+      if(!confirm('Sigur vrei să ștergi această poezie?')) return;
+      await deletePoem(id);
+      location.hash = '#/poezii';
+    });
+    document.getElementById('editPoemBtn').addEventListener('click', ()=> renderEditForm(poem));
   }
-  contentDiv.innerHTML = `
-    <h2 class="section-title">${poem.title}</h2>
-    <div class="poem-text" style="${poem.photo ? `background-image:linear-gradient(rgba(245,241,251,0.93),rgba(245,241,251,0.93)), url('${poem.photo}')` : ''}">${poem.text}</div>
-    <button class="delete-btn" id="deletePoemBtn">🗑️ șterge poezia</button>
-  `;
-  document.getElementById('deletePoemBtn').addEventListener('click', async ()=>{
-    if(!confirm('Sigur vrei să ștergi această poezie?')) return;
-    await deletePoem(id);
-    location.hash = '#/poezii';
-  });
+
+  function renderEditForm(poem){
+    contentDiv.innerHTML = `
+      <form class="upload-photo-form" id="editPoemForm">
+        <input type="text" id="editPoemTitle" value="${poem.title.replace(/"/g,'&quot;')}" required style="flex:1 1 100%;">
+        <textarea id="editPoemText" rows="6" required
+          style="flex:1 1 100%; font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:10px; font-size:0.9rem; background:var(--paper-dark);">${poem.text}</textarea>
+        <input type="file" id="editPoemPhoto" accept="image/*">
+        <span class="empty-note">${poem.photo ? 'Lasă gol ca să păstrezi poza actuală' : 'Poți adăuga acum o poză'}</span>
+        <button type="submit">Salvează modificările</button>
+        <button type="button" id="cancelEditPoem" style="background:var(--paper-dark); color:var(--ink);">Renunță</button>
+        <div class="upload-status" id="editPoemStatus"></div>
+      </form>`;
+
+    document.getElementById('cancelEditPoem').addEventListener('click', renderView);
+
+    document.getElementById('editPoemForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const title = document.getElementById('editPoemTitle').value.trim();
+      const text = document.getElementById('editPoemText').value.trim();
+      const fileInput = document.getElementById('editPoemPhoto');
+      const statusEl = document.getElementById('editPoemStatus');
+      if(!title || !text) return;
+      statusEl.textContent = 'Se salvează...';
+      try{
+        const updates = { title, text };
+        if(fileInput.files[0]){
+          updates.photo = await uploadPhotoToImgBB(fileInput.files[0]);
+        }
+        await updatePoem(id, updates);
+        renderView();
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
+    });
+  }
+
+  renderView();
 }
 
 async function initMonthPhotos(monthId){
