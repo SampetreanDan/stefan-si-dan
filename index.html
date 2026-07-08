@@ -108,10 +108,69 @@
     background-image: radial-gradient(circle, var(--paper) 3px, transparent 3.5px);
     background-size:12px 12px; background-position:-6px -6px; z-index:-1;
   }
-  .route-line{margin-top:26px; display:flex; align-items:center; gap:10px; font-family:'Special Elite', monospace; font-size:0.8rem; color:var(--accent-deep);}
+ .route-line{margin-top:26px; display:flex; align-items:center; gap:10px; font-family:'Special Elite', monospace; font-size:0.8rem; color:var(--accent-deep);}
   .route-line .dots{flex:1; border-top:2px dotted var(--lilac-line); position:relative; height:1px;}
   .route-line .dots::after{content:"✈"; position:absolute; top:-11px; left:50%; transform:translateX(-50%); font-size:0.9rem; color:var(--accent);}
 
+  /* HERO EMOȚIONAL */
+  .hero-section{
+    position:relative; min-height:64vh; border-radius:10px; overflow:hidden;
+    margin-bottom:64px; display:flex; align-items:flex-end;
+    box-shadow:0 20px 44px var(--cream-shadow);
+  }
+  .hero-bg{
+    position:absolute; inset:0;
+    background-size:cover; background-position:center;
+    background-color:var(--paper-dark);
+    background-image:
+      radial-gradient(circle at 30% 30%, rgba(124,92,191,0.25), transparent 55%),
+      radial-gradient(circle at 75% 70%, rgba(201,160,216,0.3), transparent 55%);
+  }
+  .hero-bg-note{
+    position:absolute; top:16px; left:16px; z-index:2;
+    font-family:'Special Elite', monospace; font-size:0.72rem;
+    color:var(--accent-deep); background:rgba(245,241,251,0.85);
+    padding:6px 12px; border-radius:999px; border:1px dashed var(--lilac-line);
+  }
+  .hero-overlay{
+    position:relative; z-index:2; width:100%;
+    padding:50px 44px;
+    background:linear-gradient(180deg, transparent 0%, rgba(43,31,69,0.55) 45%, rgba(43,31,69,0.88) 100%);
+    color:#F5F1FB;
+  }
+  .hero-eyebrow{
+    font-family:'Special Elite', monospace; letter-spacing:3px; text-transform:uppercase;
+    font-size:0.78rem; opacity:0.9; margin-bottom:16px;
+  }
+  .hero-emotional-title{
+    font-family:'Playfair Display', serif; font-style:italic;
+    font-size:clamp(1.7rem, 4vw, 2.7rem); color:#FFFFFF; margin-bottom:16px; line-height:1.3;
+  }
+  .hero-emotional-text{ max-width:62ch; line-height:1.75; font-size:1.02rem; color:#EDE6F7; }
+
+  .home-section{ margin-bottom:64px; }
+  .months-scroll{
+    display:flex; gap:18px; overflow-x:auto; padding:6px 2px 16px;
+    scroll-snap-type:x mandatory;
+  }
+  .month-scroll-card{
+    flex:0 0 170px; scroll-snap-align:start; text-decoration:none; color:inherit;
+    transition:transform .2s;
+  }
+  .month-scroll-card:hover{ transform:translateY(-4px); }
+
+  .poem-carousel{ display:flex; align-items:center; gap:14px; }
+  .carousel-track{
+    display:flex; gap:20px; overflow-x:auto; scroll-behavior:smooth;
+    padding:6px 2px 16px; flex:1;
+  }
+  .carousel-card{ flex:0 0 210px; }
+  .carousel-btn{
+    background:var(--accent); color:var(--paper); border:none;
+    width:42px; height:42px; border-radius:50%; font-size:1.3rem; cursor:pointer;
+    flex-shrink:0; transition:background .2s;
+  }
+  .carousel-btn:hover{ background:var(--accent-deep); }
   /* PIXEL WELCOME GATE */
  /* PIXEL WELCOME GATE — acum acoperă tot ecranul */
   #pixelGateWrap{
@@ -479,29 +538,45 @@ function viewAcasa(){
       <div class="pixel-gate-sub">// apasă DA ca să intri</div>
     </div>
   </div>
-  <div id="acasaContent" style="display:none;">
-    <div class="postcard">
-      <div class="postcard-grid">
-        <div class="postcard-left">
-          <div class="eyebrow">Trimis din Cluj-Napoca, România</div>
-          <h1 class="hero-title">Un colț doar al nostru</h1>
-          <p class="hero-body">
-            Ai ajuns pe pagina noastră, Ștefan. Aici ți-am strâns cuvintele pe care ți le-am scris,
-            lunile pe care le-am trăit împreună (chiar și de la distanță) și câteva joculețe prostuțe
-            pentru serile în care ne e dor unul de celălalt. Ia-ți timp, citește, zâmbește — și lasă-mi
-            un cuvânt undeva pe aici, ca să știu că ai trecut pe la mine. 💜
-          </p>
-          <div class="route-line"><span>CLUJ-NAPOCA</span><span class="dots"></span><span>S.U.A.</span></div>
-        </div>
-        <div class="postcard-right">
-          <div class="stamp">💜</div>
-          <div class="postmark">CLUJ ❤ USA<br>MEREU MAI<br>APROAPE DECÂT PARE</div>
-        </div>
+ <div id="acasaContent" style="display:none;">
+
+    <section class="hero-section">
+      <div class="hero-bg" id="heroBg"></div>
+      <div class="hero-bg-note">📷 Pune aici poza voastră de hero (hero.jpg)</div>
+      <div class="hero-overlay">
+        <div class="hero-eyebrow">4 luni împreună · mii de kilometri între noi</div>
+        <h1 class="hero-emotional-title">Patru luni de dor, purtat cu drag</h1>
+        <p class="hero-emotional-text">
+          Ștefan, azi facem 4 luni de când ești plecat, și tot atâtea luni în care distanța n-a reușit
+          să ne schimbe nimic din ce simțim. Mi-e dor de tine în fiecare zi, dar sunt mândră de tine
+          și de tot ce faci acolo. Derulează mai jos — ți-am strâns aici toate lunile noastre, poeziile
+          scrise pentru tine, și câteva joculețe pentru serile în care ne e greu de la distanță.
+        </p>
       </div>
-    </div>
+    </section>
+
+    <section class="home-section">
+      <h2 class="section-title">Amintirile noastre</h2>
+      <p class="section-sub">// derulează și alege o lună</p>
+      <div class="months-scroll" id="homeMonthsScroll"></div>
+    </section>
+
+    <section class="home-section">
+      <h2 class="section-title">Poezii pentru tine</h2>
+      <p class="section-sub">// alunecă printre ele</p>
+      <div class="poem-carousel">
+        <button class="carousel-btn" id="carouselPrev">‹</button>
+        <div class="carousel-track" id="carouselTrack"></div>
+        <button class="carousel-btn" id="carouselNext">›</button>
+      </div>
+    </section>
+
+    <section class="home-section">
+      ${viewJocuri()}
+    </section>
+
   </div>`;
 }
-
 function initAcasaGate(){
   const gateWrap = document.getElementById('pixelGateWrap');
   const content = document.getElementById('acasaContent');
@@ -534,14 +609,47 @@ let dodgeCount = 0;
     else if(dodgeCount >= 9){ noBtn.textContent = noMessages[2]; noBtn.style.fontSize = '0.6rem'; }
   });
 
-  yesBtn.addEventListener('click', ()=>{
+yesBtn.addEventListener('click', ()=>{
     gateWrap.style.transition = 'opacity .4s';
     gateWrap.style.opacity = '0';
     setTimeout(()=>{
       gateWrap.style.display = 'none';
       content.style.display = 'block';
+      initHomeContent();
     }, 400);
   });
+}
+
+function initHomeContent(){
+  const monthsScroll = document.getElementById('homeMonthsScroll');
+  if(monthsScroll){
+    monthsScroll.innerHTML = monthsData.map(m=>`
+      <a class="month-scroll-card card" href="#/amintiri/${m.id}">
+        <div class="photo-slot small" style="${m.photos[0] && m.photos[0].src?`background-image:url('${m.photos[0].src}')`:''}">
+          ${m.photos[0] && m.photos[0].src?'':'<span class=\"icon\">📷</span>'}
+        </div>
+        <div class="card-label">${m.label} — ${m.sub}</div>
+      </a>`).join('');
+  }
+
+  const track = document.getElementById('carouselTrack');
+  if(track){
+    track.innerHTML = poemsData.map(p=>`
+      <a class="carousel-card card" href="#/poezii/${p.id}">
+        <div class="photo-slot" style="${p.photo?`background-image:url('${p.photo}')`:''}">
+          ${p.photo?'':'<span class=\"icon\">✒️</span>'}
+        </div>
+        <div class="card-label">${p.title}</div>
+      </a>`).join('');
+    document.getElementById('carouselPrev').addEventListener('click', ()=>{
+      track.scrollBy({ left: -240, behavior:'smooth' });
+    });
+    document.getElementById('carouselNext').addEventListener('click', ()=>{
+      track.scrollBy({ left: 240, behavior:'smooth' });
+    });
+  }
+
+  initGames();
 }
 
 function viewAmintiri(){
