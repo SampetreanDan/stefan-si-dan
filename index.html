@@ -405,11 +405,11 @@
   }
   .puzzle-actions{ display:flex; gap:10px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
 
-  .sky-embed{
-    position:relative; width:100%; aspect-ratio:16/9; border-radius:8px; overflow:hidden;
-    border:1px solid var(--lilac-line); background:var(--paper-dark);
-  }
-  .sky-embed iframe{ width:100%; height:100%; border:0; }
+  .moon-widget{ display:flex; align-items:center; gap:20px; justify-content:center; padding:14px 0 6px; }
+  .moon-emoji{ font-size:4rem; line-height:1; }
+  .moon-info{ text-align:left; }
+  .moon-phase-name{ font-family:'Playfair Display', serif; font-style:italic; font-size:1.2rem; color:var(--accent-deep); }
+  .moon-illumination{ font-family:'Special Elite', monospace; font-size:0.78rem; color:var(--accent); margin-top:4px; }
 
   .draw-canvas{
     width:100%; aspect-ratio:4/3; background:#fff; border-radius:8px;
@@ -419,6 +419,9 @@
   .draw-toolbar input[type="color"]{ width:40px; height:32px; border:none; border-radius:6px; cursor:pointer; padding:0; }
   .draw-toolbar input[type="range"]{ flex:1; min-width:100px; }
   .draw-toolbar label{ font-size:0.78rem; color:var(--ink); opacity:0.75; }
+  .draw-palette{ display:flex; gap:6px; flex-wrap:wrap; }
+  .draw-swatch{ width:26px; height:26px; border-radius:50%; cursor:pointer; box-shadow:0 0 0 1px var(--lilac-line); }
+  .draw-swatch.active{ box-shadow:0 0 0 3px var(--accent-deep); }
 
   .memory-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; max-width:420px; margin:0 auto;}
   .mem-card{aspect-ratio:1; perspective:600px; cursor:pointer;}
@@ -599,6 +602,21 @@ async function loadPuzzle(){
 }
 async function savePuzzle(data){
   await db.collection('site').doc('puzzle').set(data);
+}
+async function loadMemoryPhotos(){
+  const doc = await db.collection('site').doc('memoryGame').get();
+  return doc.exists ? (doc.data().photos || null) : null;
+}
+async function saveMemoryPhotos(photos){
+  await db.collection('site').doc('memoryGame').set({ photos });
+}
+const DEFAULT_WHEEL_OPTIONS = ['Maraton de filme toată noaptea','Cinăm la restaurantul vostru preferat','Album foto cu toate amintirile','O drumeție de weekend','Gătim împreună o rețetă nouă','O zi liberă doar a voastră'];
+async function loadWheelOptions(){
+  const doc = await db.collection('site').doc('wheel').get();
+  return doc.exists ? (doc.data().options || null) : null;
+}
+async function saveWheelOptions(options){
+  await db.collection('site').doc('wheel').set({ options });
 }
 
 /* ============ POZE (ImgBB + Firestore) ============ */
@@ -1195,12 +1213,16 @@ function viewJocuri(){
       <div id="countdownContent"><p class="empty-note">Se încarcă...</p></div>
     </div>
     <div class="game-card">
-      <h3 class="game-title">Ne uităm la același cer 🌌</h3>
-      <div class="game-sub">// imagini live cu Pământul, de pe Stația Spațială Internațională</div>
-      <div class="sky-embed">
-        <iframe src="https://www.youtube.com/embed/live_stream?channel=UCLA_DiR1FfKNvjuUpBHmylQ" title="NASA Live — Pământul din spațiu" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      <h3 class="game-title">Aceeași lună, oriunde am fi 🌙</h3>
+      <div class="game-sub">// exact aceeași lună, văzută din Cluj și din New York, chiar acum</div>
+      <div class="moon-widget">
+        <div class="moon-emoji" id="moonEmoji">🌕</div>
+        <div class="moon-info">
+          <div class="moon-phase-name" id="moonPhaseName">—</div>
+          <div class="moon-illumination" id="moonIllumination">—</div>
+        </div>
       </div>
-      <p class="empty-note" style="text-align:center; margin-top:12px;">Deschideți amândoi pagina în același moment — vă uitați literalmente la aceeași imagine live, din spațiu 💜</p>
+      <p class="empty-note" style="text-align:center; margin-top:8px;">Indiferent unde suntem, ne uităm la aceeași lună, în aceeași noapte 💜</p>
     </div>
     <div class="game-card">
       <h3 class="game-title">Puzzle din noi 🧩</h3>
@@ -1212,31 +1234,53 @@ function viewJocuri(){
       <div class="game-sub">// desenați amândoi, live, din locuri diferite</div>
       <canvas id="drawCanvas" class="draw-canvas"></canvas>
       <div class="draw-toolbar">
+        <div class="draw-palette" id="drawPalette"></div>
         <input type="color" id="drawColor" value="#7C5CBF">
         <label>grosime</label>
-        <input type="range" id="drawWidth" min="1" max="14" value="4">
-        <button id="drawClearBtn" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">🗑️ șterge tabla</button>
+        <input type="range" id="drawWidth" min="1" max="24" value="4">
+        <button type="button" id="drawEraserBtn" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">🧼 radieră</button>
+        <button type="button" id="drawUndoBtn" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">↩️ undo</button>
+        <button type="button" id="drawSaveBtn" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none;">💾 salvează poza</button>
+        <button type="button" id="drawClearBtn" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">🗑️ șterge tabla</button>
       </div>
     </div>
     <div class="game-card">
       <h3 class="game-title">Perechile de dor 🧩</h3>
-      <div class="game-sub">// găsește toate perechile</div>
-      <div class="memory-grid" id="memoryGrid"></div>
-      <div class="mem-status" id="memStatus"></div>
+      <div class="game-sub">// alege poze de-ale voastre pentru joc</div>
+      <div id="memoryContent"><p class="empty-note">Se încarcă...</p></div>
     </div>
     <div class="game-card">
       <h3 class="game-title">Roata dorurilor 🎡</h3>
-      <div class="game-sub">// ce facem când te întorci acasă?</div>
-      <div class="wheel-wrap">
-        <div class="wheel-frame">
-          <div class="wheel-pointer"></div>
-          <svg class="wheel" id="wheelSvg" viewBox="0 0 200 200"></svg>
-        </div>
-        <button class="spin-btn" id="spinBtn">Învârte roata</button>
-        <div class="wheel-result" id="wheelResult"></div>
-      </div>
+      <div class="game-sub">// scrie-ți propriile idei, apoi învârte</div>
+      <div id="wheelContent"><p class="empty-note">Se încarcă...</p></div>
     </div>
   </div>`;
+}
+
+function initMoon(){
+  const emojiEl = document.getElementById('moonEmoji');
+  if(!emojiEl) return;
+  const now = new Date();
+  const knownNewMoon = new Date('2000-01-06T18:14:00Z').getTime();
+  const synodicMonth = 29.53058867;
+  const diffDays = (now.getTime() - knownNewMoon) / 86400000;
+  const phase = ((diffDays % synodicMonth) + synodicMonth) % synodicMonth;
+  const illumination = Math.round((1 - Math.cos(2 * Math.PI * phase / synodicMonth)) / 2 * 100);
+
+  let emoji, name;
+  if(phase < 1.84566){ emoji='🌑'; name='Lună nouă'; }
+  else if(phase < 5.53699){ emoji='🌒'; name='Semilună crescătoare'; }
+  else if(phase < 9.22831){ emoji='🌓'; name='Primul pătrar'; }
+  else if(phase < 12.91963){ emoji='🌔'; name='Gibboasă crescătoare'; }
+  else if(phase < 16.61096){ emoji='🌕'; name='Lună plină'; }
+  else if(phase < 20.30228){ emoji='🌖'; name='Gibboasă descrescătoare'; }
+  else if(phase < 23.99361){ emoji='🌗'; name='Ultimul pătrar'; }
+  else if(phase < 27.68493){ emoji='🌘'; name='Semilună descrescătoare'; }
+  else { emoji='🌑'; name='Lună nouă'; }
+
+  emojiEl.textContent = emoji;
+  document.getElementById('moonPhaseName').textContent = name;
+  document.getElementById('moonIllumination').textContent = `${illumination}% iluminată`;
 }
 
 async function initCountdown(){
@@ -1257,12 +1301,12 @@ async function initCountdown(){
         <div class="countdown-unit"><span id="cdSeconds">--</span><label>sec</label></div>
       </div>
       <div class="flight-route">
-        <span class="flight-city">Cluj-Napoca</span>
+        <span class="flight-city">New York</span>
         <div class="flight-track">
           <div class="flight-progress" id="flightProgress"></div>
           <div class="flight-plane" id="flightPlane">✈️</div>
         </div>
-        <span class="flight-city">New York</span>
+        <span class="flight-city">Cluj-Napoca</span>
       </div>
       <div class="distance-note" id="distanceNote"></div>
       <div class="countdown-map" id="countdownMap"></div>
@@ -1493,6 +1537,41 @@ function initDrawing(){
   const colorInput = document.getElementById('drawColor');
   const widthInput = document.getElementById('drawWidth');
   const clearBtn = document.getElementById('drawClearBtn');
+  const eraserBtn = document.getElementById('drawEraserBtn');
+  const undoBtn = document.getElementById('drawUndoBtn');
+  const saveBtn = document.getElementById('drawSaveBtn');
+  const paletteEl = document.getElementById('drawPalette');
+
+  const palette = ['#7C5CBF','#5B3E96','#C0463A','#E8A6D0','#D8B4E2','#3F7873','#2B374F','#D1A24E','#000000','#FFFFFF'];
+  paletteEl.innerHTML = palette.map(c=>`<div class="draw-swatch" data-color="${c}" style="background:${c};"></div>`).join('');
+  let eraserOn = false;
+
+  function setActiveSwatch(color){
+    paletteEl.querySelectorAll('.draw-swatch').forEach(s=>{
+      s.classList.toggle('active', s.dataset.color.toLowerCase() === color.toLowerCase());
+    });
+  }
+  paletteEl.querySelectorAll('.draw-swatch').forEach(sw=>{
+    sw.addEventListener('click', ()=>{
+      eraserOn = false;
+      eraserBtn.style.background = 'var(--paper-dark)';
+      eraserBtn.style.color = 'var(--ink)';
+      colorInput.value = sw.dataset.color;
+      setActiveSwatch(sw.dataset.color);
+    });
+  });
+  colorInput.addEventListener('input', ()=>{
+    eraserOn = false;
+    eraserBtn.style.background = 'var(--paper-dark)';
+    eraserBtn.style.color = 'var(--ink)';
+    setActiveSwatch(colorInput.value);
+  });
+
+  eraserBtn.addEventListener('click', ()=>{
+    eraserOn = !eraserOn;
+    eraserBtn.style.background = eraserOn ? 'var(--accent)' : 'var(--paper-dark)';
+    eraserBtn.style.color = eraserOn ? 'var(--paper)' : 'var(--ink)';
+  });
 
   let allStrokes = [];
   let currentStroke = null;
@@ -1500,7 +1579,13 @@ function initDrawing(){
 
   function drawStroke(stroke){
     if(!stroke.points || stroke.points.length < 1) return;
-    ctx.strokeStyle = stroke.color;
+    ctx.save();
+    if(stroke.color === 'eraser'){
+      ctx.globalCompositeOperation = 'destination-out';
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = stroke.color;
+    }
     ctx.lineWidth = stroke.width;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -1511,6 +1596,7 @@ function initDrawing(){
       if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
     });
     ctx.stroke();
+    ctx.restore();
   }
 
   function redrawAll(){
@@ -1543,7 +1629,11 @@ function initDrawing(){
   function startDraw(e){
     e.preventDefault();
     drawing = true;
-    currentStroke = { points:[getPos(e)], color: colorInput.value, width: Number(widthInput.value) };
+    currentStroke = {
+      points:[getPos(e)],
+      color: eraserOn ? 'eraser' : colorInput.value,
+      width: Number(widthInput.value) * (eraserOn ? 2.2 : 1)
+    };
   }
   function moveDraw(e){
     if(!drawing) return;
@@ -1555,10 +1645,9 @@ function initDrawing(){
     if(!drawing) return;
     drawing = false;
     if(currentStroke && currentStroke.points.length > 1){
+      allStrokes = [...allStrokes, currentStroke];
       try{
-        await db.collection('site').doc('drawing').set({
-          strokes: firebase.firestore.FieldValue.arrayUnion(currentStroke)
-        }, { merge:true });
+        await db.collection('site').doc('drawing').set({ strokes: allStrokes });
       }catch(e){}
     }
     currentStroke = null;
@@ -1571,91 +1660,223 @@ function initDrawing(){
   canvas.addEventListener('touchmove', moveDraw);
   canvas.addEventListener('touchend', endDraw);
 
+  undoBtn.addEventListener('click', async ()=>{
+    if(!allStrokes.length) return;
+    const reduced = allStrokes.slice(0, -1);
+    try{ await db.collection('site').doc('drawing').set({ strokes: reduced }); }catch(e){}
+  });
+
   clearBtn.addEventListener('click', async ()=>{
     if(!confirm('Sigur vreți să ștergeți tabla, pentru amândoi?')) return;
     await db.collection('site').doc('drawing').set({ strokes: [] });
   });
+
+  saveBtn.addEventListener('click', ()=>{
+    const tmp = document.createElement('canvas');
+    tmp.width = canvas.width; tmp.height = canvas.height;
+    const tctx = tmp.getContext('2d');
+    tctx.fillStyle = '#ffffff';
+    tctx.fillRect(0,0,tmp.width,tmp.height);
+    tctx.drawImage(canvas, 0, 0);
+    const link = document.createElement('a');
+    link.download = 'desenul-nostru.png';
+    link.href = tmp.toDataURL('image/png');
+    link.click();
+  });
+}
+
+async function initMemory(){
+  const contentDiv = document.getElementById('memoryContent');
+  if(!contentDiv) return;
+
+  async function renderSetup(existingPhotos){
+    contentDiv.innerHTML = `
+      <form class="puzzle-setup-form" id="memorySetupForm">
+        <input type="file" id="memoryPhotosInput" accept="image/*" multiple ${existingPhotos && existingPhotos.length ? '' : 'required'}>
+        <span class="empty-note">${existingPhotos && existingPhotos.length ? 'Lasă gol ca să păstrezi pozele actuale, sau alege poze noi (2-8)' : 'Alege 2-8 poze de-ale voastre'}</span>
+        <button type="submit" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none; align-self:flex-start;">Creează jocul</button>
+        <div class="upload-status" id="memorySetupStatus"></div>
+      </form>
+    `;
+    document.getElementById('memorySetupForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const fileInput = document.getElementById('memoryPhotosInput');
+      const statusEl = document.getElementById('memorySetupStatus');
+      statusEl.textContent = 'Se încarcă pozele...';
+      try{
+        let photos = existingPhotos || [];
+        if(fileInput.files.length){
+          const files = Array.from(fileInput.files).slice(0,8);
+          if(files.length < 2){ statusEl.textContent = 'Alege cel puțin 2 poze.'; return; }
+          photos = [];
+          for(const file of files){
+            const url = await uploadPhotoToImgBB(file);
+            photos.push(url);
+          }
+        }
+        if(!photos.length){ statusEl.textContent = 'Alege poze.'; return; }
+        await saveMemoryPhotos(photos);
+        renderGame(photos);
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
+    });
+  }
+
+  function renderGame(photos){
+    contentDiv.innerHTML = `
+      <div class="memory-grid" id="memoryGrid"></div>
+      <div class="mem-status" id="memStatus"></div>
+      <div class="puzzle-actions">
+        <button class="hero-edit-btn" id="memoryShuffleBtn" style="background:var(--accent); color:var(--paper); border:none;">🔀 amestecă din nou</button>
+        <button class="hero-edit-btn" id="memoryChangeBtn" style="background:var(--paper-dark); color:var(--ink);">✏️ schimbă pozele</button>
+      </div>
+    `;
+    let cards = [...photos, ...photos];
+    cards.sort(()=>Math.random()-0.5);
+    const memoryGrid = document.getElementById('memoryGrid');
+    const memStatus = document.getElementById('memStatus');
+    let flippedCards = [], lockBoard = false, matchesFound = 0;
+
+    cards.forEach(photoUrl=>{
+      const card = document.createElement('div');
+      card.className = 'mem-card';
+      card.innerHTML = `<div class="mem-inner"><div class="mem-face mem-front"></div><div class="mem-face mem-back" style="background-image:url('${photoUrl}'); background-size:cover; background-position:center;"></div></div>`;
+      card.dataset.photo = photoUrl;
+      card.addEventListener('click', ()=>flipCard(card));
+      memoryGrid.appendChild(card);
+    });
+    function flipCard(card){
+      if(lockBoard || card.classList.contains('flip') || card.classList.contains('matched')) return;
+      card.classList.add('flip');
+      flippedCards.push(card);
+      if(flippedCards.length === 2){
+        lockBoard = true;
+        const [a,b] = flippedCards;
+        if(a.dataset.photo === b.dataset.photo){
+          a.classList.add('matched'); b.classList.add('matched');
+          matchesFound++; flippedCards = []; lockBoard = false;
+          if(matchesFound === photos.length) memStatus.textContent = 'Ai găsit toate perechile! Exact ca noi doi 💜';
+        } else {
+          setTimeout(()=>{ a.classList.remove('flip'); b.classList.remove('flip'); flippedCards = []; lockBoard = false; }, 800);
+        }
+      }
+    }
+    document.getElementById('memoryShuffleBtn').addEventListener('click', ()=> renderGame(photos));
+    document.getElementById('memoryChangeBtn').addEventListener('click', ()=> renderSetup(photos));
+  }
+
+  const existing = await loadMemoryPhotos();
+  if(existing && existing.length){
+    renderGame(existing);
+  } else {
+    renderSetup(existing);
+  }
+}
+
+async function initWheel(){
+  const contentDiv = document.getElementById('wheelContent');
+  if(!contentDiv) return;
+
+  function buildWheel(wheelOptions){
+    const wheelColors = ['#7C5CBF','#5B3E96','#C9A0D8','#8B6BB5','#B99BD8','#4E3A73','#E8A6D0','#3F7873','#D1A24E','#C0463A'];
+    const wheelSvg = document.getElementById('wheelSvg');
+    const segAngle = 360 / wheelOptions.length;
+    function polarToCartesian(cx, cy, r, angleDeg){ const a=(angleDeg-90)*Math.PI/180; return {x:cx+r*Math.cos(a), y:cy+r*Math.sin(a)}; }
+    function describeArc(cx, cy, r, startAngle, endAngle){
+      const start = polarToCartesian(cx,cy,r,endAngle), end = polarToCartesian(cx,cy,r,startAngle);
+      const largeArcFlag = endAngle-startAngle<=180?"0":"1";
+      return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y} Z`;
+    }
+    wheelOptions.forEach((opt,i)=>{
+      const start=i*segAngle, end=start+segAngle;
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d', describeArc(100,100,98,start,end));
+      path.setAttribute('fill', wheelColors[i%wheelColors.length]);
+      wheelSvg.appendChild(path);
+      const mid=start+segAngle/2, labelPos=polarToCartesian(100,100,62,mid);
+      const text=document.createElementNS('http://www.w3.org/2000/svg','text');
+      text.setAttribute('x',labelPos.x); text.setAttribute('y',labelPos.y);
+      text.setAttribute('fill','#F5F1FB'); text.setAttribute('font-size','7');
+      text.setAttribute('font-family','Poppins, sans-serif'); text.setAttribute('text-anchor','middle');
+      text.setAttribute('transform', `rotate(${mid}, ${labelPos.x}, ${labelPos.y})`);
+      const words=opt.split(' '); let line='', lines=[];
+      words.forEach(w=>{ if((line+w).length>14){lines.push(line); line=w+' ';} else line+=w+' '; });
+      lines.push(line);
+      lines.forEach((l,idx)=>{
+        const tspan=document.createElementNS('http://www.w3.org/2000/svg','tspan');
+        tspan.setAttribute('x', labelPos.x); tspan.setAttribute('dy', idx===0?0:8);
+        tspan.textContent=l.trim(); text.appendChild(tspan);
+      });
+      wheelSvg.appendChild(text);
+    });
+    let currentRotation=0;
+    document.getElementById('spinBtn').addEventListener('click', ()=>{
+      const winnerIndex=Math.floor(Math.random()*wheelOptions.length);
+      const targetMid=winnerIndex*segAngle+segAngle/2;
+      const spins=5*360;
+      const finalRotation=currentRotation+spins+(360-targetMid)-(currentRotation%360);
+      currentRotation=finalRotation;
+      document.getElementById('wheelSvg').style.transform=`rotate(${finalRotation}deg)`;
+      document.getElementById('wheelResult').textContent='';
+      setTimeout(()=>{ document.getElementById('wheelResult').textContent='→ '+wheelOptions[winnerIndex]; }, 3600);
+    });
+  }
+
+  function renderView(options){
+    contentDiv.innerHTML = `
+      <div class="wheel-wrap">
+        <div class="wheel-frame">
+          <div class="wheel-pointer"></div>
+          <svg class="wheel" id="wheelSvg" viewBox="0 0 200 200"></svg>
+        </div>
+        <button class="spin-btn" id="spinBtn">Învârte roata</button>
+        <div class="wheel-result" id="wheelResult"></div>
+        <button class="hero-edit-btn" id="editWheelBtn" style="background:var(--paper-dark); color:var(--ink);">✏️ editează opțiunile</button>
+      </div>
+    `;
+    buildWheel(options);
+    document.getElementById('editWheelBtn').addEventListener('click', ()=> renderEdit(options));
+  }
+
+  function renderEdit(options){
+    contentDiv.innerHTML = `
+      <form class="puzzle-setup-form" id="wheelEditForm">
+        <span class="empty-note">Scrie o opțiune pe fiecare rând (minim 2, maxim 10)</span>
+        <textarea id="wheelOptionsInput" rows="8" style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:10px; font-size:0.9rem; background:var(--paper-dark);">${options.join('\n')}</textarea>
+        <div style="display:flex; gap:10px;">
+          <button type="submit" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none;">Salvează</button>
+          <button type="button" id="cancelWheelEdit" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">Renunță</button>
+        </div>
+        <div class="upload-status" id="wheelEditStatus"></div>
+      </form>
+    `;
+    document.getElementById('cancelWheelEdit').addEventListener('click', ()=> renderView(options));
+    document.getElementById('wheelEditForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const lines = document.getElementById('wheelOptionsInput').value.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,10);
+      const statusEl = document.getElementById('wheelEditStatus');
+      if(lines.length < 2){ statusEl.textContent = 'Scrie cel puțin 2 opțiuni.'; return; }
+      try{
+        await saveWheelOptions(lines);
+        renderView(lines);
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
+    });
+  }
+
+  const stored = await loadWheelOptions();
+  renderView(stored && stored.length ? stored : DEFAULT_WHEEL_OPTIONS);
 }
 
 function initGames(){
   initCountdown();
+  initMoon();
   initPuzzle();
   initDrawing();
-  const icons = ['✈️','💌','💜','⭐','🌍','🎵'];
-  let cards = [...icons, ...icons];
-  cards.sort(()=>Math.random()-0.5);
-  const memoryGrid = document.getElementById('memoryGrid');
-  const memStatus = document.getElementById('memStatus');
-  let flippedCards = [], lockBoard = false, matchesFound = 0;
-
-  cards.forEach(icon=>{
-    const card = document.createElement('div');
-    card.className = 'mem-card';
-    card.innerHTML = `<div class="mem-inner"><div class="mem-face mem-front"></div><div class="mem-face mem-back">${icon}</div></div>`;
-    card.dataset.icon = icon;
-    card.addEventListener('click', ()=>flipCard(card));
-    memoryGrid.appendChild(card);
-  });
-  function flipCard(card){
-    if(lockBoard || card.classList.contains('flip') || card.classList.contains('matched')) return;
-    card.classList.add('flip');
-    flippedCards.push(card);
-    if(flippedCards.length === 2){
-      lockBoard = true;
-      const [a,b] = flippedCards;
-      if(a.dataset.icon === b.dataset.icon){
-        a.classList.add('matched'); b.classList.add('matched');
-        matchesFound++; flippedCards = []; lockBoard = false;
-        if(matchesFound === icons.length) memStatus.textContent = 'Ai găsit toate perechile! Exact ca noi doi 💜';
-      } else {
-        setTimeout(()=>{ a.classList.remove('flip'); b.classList.remove('flip'); flippedCards = []; lockBoard = false; }, 800);
-      }
-    }
-  }
-
-  const wheelOptions = ['Maraton de filme toată noaptea','Cinăm la restaurantul vostru preferat','Album foto cu toate amintirile','O drumeție de weekend','Gătim împreună o rețetă nouă','O zi liberă doar a voastră'];
-  const wheelColors = ['#7C5CBF','#5B3E96','#C9A0D8','#8B6BB5','#B99BD8','#4E3A73'];
-  const wheelSvg = document.getElementById('wheelSvg');
-  const segAngle = 360 / wheelOptions.length;
-  function polarToCartesian(cx, cy, r, angleDeg){ const a=(angleDeg-90)*Math.PI/180; return {x:cx+r*Math.cos(a), y:cy+r*Math.sin(a)}; }
-  function describeArc(cx, cy, r, startAngle, endAngle){
-    const start = polarToCartesian(cx,cy,r,endAngle), end = polarToCartesian(cx,cy,r,startAngle);
-    const largeArcFlag = endAngle-startAngle<=180?"0":"1";
-    return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y} Z`;
-  }
-  wheelOptions.forEach((opt,i)=>{
-    const start=i*segAngle, end=start+segAngle;
-    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d', describeArc(100,100,98,start,end));
-    path.setAttribute('fill', wheelColors[i%wheelColors.length]);
-    wheelSvg.appendChild(path);
-    const mid=start+segAngle/2, labelPos=polarToCartesian(100,100,62,mid);
-    const text=document.createElementNS('http://www.w3.org/2000/svg','text');
-    text.setAttribute('x',labelPos.x); text.setAttribute('y',labelPos.y);
-    text.setAttribute('fill','#F5F1FB'); text.setAttribute('font-size','7');
-    text.setAttribute('font-family','Poppins, sans-serif'); text.setAttribute('text-anchor','middle');
-    text.setAttribute('transform', `rotate(${mid}, ${labelPos.x}, ${labelPos.y})`);
-    const words=opt.split(' '); let line='', lines=[];
-    words.forEach(w=>{ if((line+w).length>14){lines.push(line); line=w+' ';} else line+=w+' '; });
-    lines.push(line);
-    lines.forEach((l,idx)=>{
-      const tspan=document.createElementNS('http://www.w3.org/2000/svg','tspan');
-      tspan.setAttribute('x', labelPos.x); tspan.setAttribute('dy', idx===0?0:8);
-      tspan.textContent=l.trim(); text.appendChild(tspan);
-    });
-    wheelSvg.appendChild(text);
-  });
-  let currentRotation=0;
-  document.getElementById('spinBtn').addEventListener('click', ()=>{
-    const winnerIndex=Math.floor(Math.random()*wheelOptions.length);
-    const targetMid=winnerIndex*segAngle+segAngle/2;
-    const spins=5*360;
-    const finalRotation=currentRotation+spins+(360-targetMid)-(currentRotation%360);
-    currentRotation=finalRotation;
-    document.getElementById('wheelSvg').style.transform=`rotate(${finalRotation}deg)`;
-    document.getElementById('wheelResult').textContent='';
-    setTimeout(()=>{ document.getElementById('wheelResult').textContent='→ '+wheelOptions[winnerIndex]; }, 3600);
-  });
+  initMemory();
+  initWheel();
 }
 
 /* ============ LIGHTBOX ============ */
