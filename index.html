@@ -885,12 +885,16 @@ async function saveGameCover(gameId, url){
   await db.collection('site').doc('gameCovers').set({ [gameId]: url }, { merge:true });
 }
 
-async function loadMusicUrl(){
-  const doc = await db.collection('site').doc('music').get();
-  return doc.exists ? (doc.data().url || '') : '';
+function extractYouTubeId(url){
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
 }
-async function saveMusicUrl(url){
-  await db.collection('site').doc('music').set({ url });
+async function loadMusicPlaylist(){
+  const doc = await db.collection('site').doc('music').get();
+  return doc.exists ? (doc.data().youtubeIds || []) : [];
+}
+async function saveMusicPlaylist(ids){
+  await db.collection('site').doc('music').set({ youtubeIds: ids });
 }
 
 /* ============ JURNALUL NOSTRU ============ */
@@ -1241,13 +1245,21 @@ async function initHomeContent(){
   }
 
   // Joculețele — doar link-uri ușoare, fiecare joc trăiește pe pagina lui
-  const gamesScroll = document.getElementById('homeGamesScroll');
+const gamesScroll = document.getElementById('homeGamesScroll');
   if(gamesScroll){
     gamesScroll.innerHTML = gamesList.map(g=>`
       <a class="month-scroll-card card" href="#/jocuri/${g.id}">
-        <div class="photo-slot small"><span class="icon">${g.icon}</span></div>
+        <div class="photo-slot small" data-gameid="${g.id}"><span class="icon">${g.icon}</span></div>
         <div class="card-label">${g.title}</div>
       </a>`).join('');
+    const covers = await loadGameCovers();
+    gamesScroll.querySelectorAll('.photo-slot[data-gameid]').forEach(slot=>{
+      const url = covers[slot.dataset.gameid];
+      if(url){
+        slot.style.backgroundImage = `url('${url}')`;
+        slot.innerHTML = '';
+      }
+    });
   }
 }
 
@@ -2181,32 +2193,48 @@ async function initJocuriMenu(){
     });
   });
 
-  const musicDiv = document.getElementById('musicSettingsContent');
+const musicDiv = document.getElementById('musicSettingsContent');
   if(musicDiv){
-    const currentUrl = await loadMusicUrl();
-    musicDiv.innerHTML = `
-      <form class="upload-photo-form" id="musicForm">
-        <input type="text" id="musicUrlInput" placeholder="https://... link direct către mp3" value="${currentUrl.replace(/"/g,'&quot;')}" style="flex:1 1 100%;">
-        <button type="submit">Salvează melodia</button>
-        <div class="upload-status" id="musicStatus"></div>
-      </form>
-    `;
-    document.getElementById('musicForm').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const url = document.getElementById('musicUrlInput').value.trim();
-      const statusEl = document.getElementById('musicStatus');
-      statusEl.textContent = 'Se salvează...';
-      try{
-        await saveMusicUrl(url);
-        if(bgAudio){ bgAudio.src = url; }
-        statusEl.textContent = 'Salvat! 💜';
-      }catch(err){
-        statusEl.textContent = 'Eroare: ' + err.message;
-      }
-    });
+    async function renderMusicSettings(){
+      const ids = await loadMusicPlaylist();
+      musicDiv.innerHTML = `
+        <form class="upload-photo-form" id="musicForm">
+          <input type="text" id="musicUrlInput" placeholder="Lipește un link YouTube (ex: https://youtube.com/watch?v=...)" style="flex:1 1 100%;">
+          <button type="submit">Adaugă melodia</button>
+          <div class="upload-status" id="musicStatus"></div>
+        </form>
+        <div style="margin-top:14px;">
+          ${ids.length ? ids.map(id=>`
+            <div class="journal-entry">
+              🎵 ${id}
+              <button class="delete-btn" data-id="${id}">🗑️ șterge</button>
+            </div>`).join('') : '<p class="empty-note">Nicio melodie adăugată încă.</p>'}
+        </div>
+      `;
+      document.getElementById('musicForm').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const input = document.getElementById('musicUrlInput');
+        const url = input.value.trim();
+        const statusEl = document.getElementById('musicStatus');
+        const vid = extractYouTubeId(url);
+        if(!vid){ statusEl.textContent = 'Linkul nu pare valid — copiază linkul normal de pe YouTube.'; return; }
+        const current = await loadMusicPlaylist();
+        if(!current.includes(vid)) current.push(vid);
+        await saveMusicPlaylist(current);
+        input.value = '';
+        renderMusicSettings();
+      });
+      musicDiv.querySelectorAll('.delete-btn').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          const current = await loadMusicPlaylist();
+          await saveMusicPlaylist(current.filter(x=>x!==btn.dataset.id));
+          renderMusicSettings();
+        });
+      });
+    }
+    renderMusicSettings();
   }
 }
-
 function initGameById(id){
   const map = {
     countdown: initCountdown, moon: initMoon, puzzle: initPuzzle, drawing: initDrawing,
@@ -2856,23 +2884,29 @@ document.getElementById('lightbox').addEventListener('click', (e)=>{
   if(e.target.id === 'lightbox') document.getElementById('lightbox').classList.remove('show');
 });
 
-/* ============ MUSIC TOGGLE ============ */
+/* ============ MUSIC TOGGLE (YouTube) ============ */
 const musicBtn = document.getElementById('musicToggle');
-const bgAudio = document.getElementById('bgAudio');
 let playing = false;
+let ytFrame = null;
 
-loadMusicUrl().then(url=>{
-  if(url) bgAudio.src = url;
-}).catch(()=>{});
-
-musicBtn.addEventListener('click', ()=>{
+musicBtn.addEventListener('click', async ()=>{
   if(!playing){
-    bgAudio.play().catch(()=>{});
+    const ids = await loadMusicPlaylist();
+    if(!ids.length){
+      alert('Nu ai adăugat încă nicio melodie. Mergi pe pagina de Joculețe și adaugă un link YouTube.');
+      return;
+    }
+    const chosen = ids[Math.floor(Math.random()*ids.length)];
+    ytFrame = document.createElement('iframe');
+    ytFrame.src = `https://www.youtube.com/embed/${chosen}?autoplay=1&loop=1&playlist=${chosen}`;
+    ytFrame.allow = 'autoplay';
+    ytFrame.style.cssText = 'position:fixed; bottom:0; right:0; width:1px; height:1px; opacity:0; pointer-events:none; border:0;';
+    document.body.appendChild(ytFrame);
     musicBtn.classList.add('playing');
     musicBtn.textContent = '🔊';
     playing = true;
   } else {
-    bgAudio.pause();
+    if(ytFrame){ ytFrame.remove(); ytFrame = null; }
     musicBtn.classList.remove('playing');
     musicBtn.textContent = '🎵';
     playing = false;
