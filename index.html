@@ -890,17 +890,21 @@ async function saveWheelOptions(options){
 }
 
 /* ============ CAPSULA DE TIMP ============ */
-async function loadCapsule(){
-  const doc = await db.collection('site').doc('capsule').get();
-  return doc.exists ? doc.data() : null;
+async function loadCapsules(){
+  const snapshot = await db.collection('capsules').get();
+  const list = snapshot.docs.map(d=>({ id:d.id, ...d.data() }));
+  list.sort((a,b)=>a.timestamp - b.timestamp);
+  return list;
 }
-async function saveCapsule(data){
-  await db.collection('site').doc('capsule').set(data);
+async function addCapsule(message, unlockDate){
+  await db.collection('capsules').add({ message, unlockDate, timestamp: Date.now() });
 }
-async function deleteCapsule(){
-  await db.collection('site').doc('capsule').delete();
+async function editCapsuleFn(id, message, unlockDate){
+  await db.collection('capsules').doc(id).update({ message, unlockDate });
 }
-
+async function deleteCapsuleFn(id){
+  await db.collection('capsules').doc(id).delete();
+}
 /* ============ PLICURI SURPRIZĂ ============ */
 async function loadEnvelopes(){
   const snapshot = await db.collection('envelopes').get();
@@ -1782,47 +1786,109 @@ async function initCapsule(){
   const contentDiv = document.getElementById('capsuleContent');
   if(!contentDiv) return;
 
-  async function renderView(){
-    const capsule = await loadCapsule();
-    if(!capsule){
-      renderSetup();
-      return;
-    }
+  async function render(){
+    const capsules = await loadCapsules();
     const now = new Date();
-    const unlock = new Date(capsule.unlockDate);
-    if(now < unlock){
-      const diffDays = Math.ceil((unlock - now) / (1000*60*60*24));
-      contentDiv.innerHTML = `
-        <div class="capsule-locked">
-          <div class="capsule-icon">🔒</div>
-          <p>O scrisoare așteaptă, sigilată.</p>
-          <div class="capsule-date">Se deschide pe ${unlock.toLocaleDateString('ro-RO')} — ${diffDays} zile rămase</div>
-        </div>
-        <div class="puzzle-actions">
-          <button class="hero-edit-btn" id="capsuleEditBtn" style="background:var(--paper-dark); color:var(--ink);">✏️ editează</button>
-          <button class="hero-edit-btn" id="capsuleDeleteBtn" style="background:var(--paper-dark); color:var(--ink);">🗑️ șterge</button>
-        </div>`;
-      document.getElementById('capsuleEditBtn').addEventListener('click', ()=> renderSetup(capsule));
-      document.getElementById('capsuleDeleteBtn').addEventListener('click', async ()=>{
-        if(!confirm('Sigur vrei să ștergi capsula?')) return;
-        await deleteCapsule();
-        renderView();
+    contentDiv.innerHTML = `
+      <div id="capsuleList">
+        ${capsules.length ? capsules.map(c=>{
+          const unlock = new Date(c.unlockDate);
+          if(now < unlock){
+            const diffDays = Math.ceil((unlock - now) / (1000*60*60*24));
+            return `
+              <div class="capsule-locked" style="background:var(--paper-dark); border-radius:8px; margin-bottom:14px;">
+                <div class="capsule-icon">🔒</div>
+                <p>O scrisoare așteaptă, sigilată.</p>
+                <div class="capsule-date">Se deschide pe ${unlock.toLocaleDateString('ro-RO')} — ${diffDays} zile rămase</div>
+                <div class="puzzle-actions">
+                  <button class="hero-edit-btn" data-edit="${c.id}" style="background:var(--paper); color:var(--ink);">✏️ editează</button>
+                  <button class="hero-edit-btn" data-id="${c.id}" style="background:var(--paper); color:var(--ink);">🗑️ șterge</button>
+                </div>
+              </div>`;
+          } else {
+            return `
+              <div class="capsule-open" style="margin-bottom:14px;">
+                🔓 ${c.message}
+                <div class="puzzle-actions">
+                  <button class="hero-edit-btn" data-edit="${c.id}" style="background:var(--paper-dark); color:var(--ink);">✏️ editează</button>
+                  <button class="hero-edit-btn" data-id="${c.id}" style="background:var(--paper-dark); color:var(--ink);">🗑️ șterge</button>
+                </div>
+              </div>`;
+          }
+        }).join('') : '<p class="empty-note" style="text-align:center;">Nicio capsulă încă — scrie prima mai jos.</p>'}
+      </div>
+      <form class="puzzle-setup-form" id="capsuleAddForm" style="margin-top:20px;">
+        <span class="empty-note">Scrie un mesaj nou, sigilat până la o dată aleasă de tine</span>
+        <textarea id="capsuleMessage" rows="4" placeholder="Scrie mesajul aici..." required
+          style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:10px; font-size:0.9rem; background:var(--paper-dark);"></textarea>
+        <input type="date" id="capsuleDate" required style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:8px; background:var(--paper-dark);">
+        <button type="submit" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none; align-self:flex-start;">Sigilează o capsulă nouă</button>
+        <div class="upload-status" id="capsuleStatus"></div>
+      </form>
+    `;
+
+    document.querySelectorAll('#capsuleList [data-edit]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const capsule = capsules.find(c=>c.id===btn.dataset.edit);
+        renderEditForm(capsule);
       });
-    } else {
-      contentDiv.innerHTML = `
-        <div class="capsule-open">🔓 ${capsule.message}</div>
-        <div class="puzzle-actions">
-          <button class="hero-edit-btn" id="capsuleResetBtn" style="background:var(--paper-dark); color:var(--ink);">✏️ scrie o capsulă nouă</button>
-          <button class="hero-edit-btn" id="capsuleDeleteBtn" style="background:var(--paper-dark); color:var(--ink);">🗑️ șterge</button>
-        </div>`;
-      document.getElementById('capsuleResetBtn').addEventListener('click', ()=> renderSetup());
-      document.getElementById('capsuleDeleteBtn').addEventListener('click', async ()=>{
-        if(!confirm('Sigur vrei să ștergi capsula?')) return;
-        await deleteCapsule();
-        renderView();
+    });
+    document.querySelectorAll('#capsuleList [data-id]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm('Sigur vrei să ștergi această capsulă?')) return;
+        await deleteCapsuleFn(btn.dataset.id);
+        render();
       });
-    }
+    });
+    document.getElementById('capsuleAddForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const message = document.getElementById('capsuleMessage').value.trim();
+      const unlockDate = document.getElementById('capsuleDate').value;
+      const statusEl = document.getElementById('capsuleStatus');
+      if(!message || !unlockDate) return;
+      statusEl.textContent = 'Se salvează...';
+      try{
+        await addCapsule(message, unlockDate);
+        render();
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
+    });
   }
+
+  function renderEditForm(capsule){
+    contentDiv.innerHTML = `
+      <form class="puzzle-setup-form" id="capsuleEditForm">
+        <textarea id="capsuleEditMessage" rows="4" required
+          style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:10px; font-size:0.9rem; background:var(--paper-dark);">${capsule.message}</textarea>
+        <input type="date" id="capsuleEditDate" value="${capsule.unlockDate}" required
+          style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:8px; background:var(--paper-dark);">
+        <div style="display:flex; gap:10px;">
+          <button type="submit" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none;">Salvează</button>
+          <button type="button" id="capsuleEditCancel" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">Renunță</button>
+        </div>
+        <div class="upload-status" id="capsuleEditStatus"></div>
+      </form>
+    `;
+    document.getElementById('capsuleEditCancel').addEventListener('click', render);
+    document.getElementById('capsuleEditForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const message = document.getElementById('capsuleEditMessage').value.trim();
+      const unlockDate = document.getElementById('capsuleEditDate').value;
+      const statusEl = document.getElementById('capsuleEditStatus');
+      if(!message || !unlockDate) return;
+      statusEl.textContent = 'Se salvează...';
+      try{
+        await editCapsuleFn(capsule.id, message, unlockDate);
+        render();
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
+    });
+  }
+
+  render();
+}
 
   function renderSetup(existing){
     contentDiv.innerHTML = `
