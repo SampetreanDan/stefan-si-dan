@@ -542,8 +542,65 @@
     border-radius:8px; padding:5px 8px; cursor:pointer;
   }
   .journal-mood-picker button.picked{ border-color:var(--accent-deep); background:var(--accent); }
-  .journal-empty{ text-align:center; padding:30px 10px; }
+.journal-empty{ text-align:center; padding:30px 10px; }
   .journal-empty-icon{ font-size:2.6rem; margin-bottom:10px; }
+
+  /* CEAS + VREME */
+  .dual-clock-wrap{ display:flex; gap:28px; justify-content:center; flex-wrap:wrap; padding:10px 0 4px; }
+  .clock-card{ text-align:center; }
+  .clock-face{
+    width:118px; height:118px; border-radius:50%; border:3px solid var(--accent-deep);
+    background:var(--paper-dark); display:flex; flex-direction:column; align-items:center; justify-content:center;
+    margin:0 auto 10px; box-shadow:0 8px 20px var(--cream-shadow); gap:2px;
+  }
+  .clock-icon{ font-size:1.5rem; }
+  .clock-time{ font-family:'Special Elite', monospace; font-size:1.1rem; color:var(--accent-deep); }
+  .clock-city{ font-family:'Playfair Display', serif; font-style:italic; font-size:1.05rem; color:var(--ink); }
+  .clock-date{ font-size:0.72rem; opacity:0.7; margin-top:2px; text-transform:capitalize; }
+  .clock-diff{ text-align:center; font-family:'Special Elite', monospace; font-size:0.8rem; color:var(--accent); margin-top:16px; }
+
+  /* CONTOR ZILE ÎMPREUNĂ */
+  .days-counter{ display:flex; align-items:baseline; gap:10px; margin-bottom:12px; }
+  .days-counter-num{ font-family:'Special Elite', monospace; font-size:2.4rem; color:#fff; }
+  .days-counter-label{ font-family:'Playfair Display', serif; font-style:italic; font-size:1.05rem; color:#EDE6F7; }
+
+  /* MOD NOAPTE */
+  .nightmode-toggle{
+    position:fixed; bottom:22px; left:22px; z-index:60;
+    width:54px; height:54px; border-radius:50%;
+    background:var(--accent); color:var(--paper);
+    border:none; font-size:1.3rem; cursor:pointer;
+    box-shadow:0 8px 20px var(--cream-shadow);
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s, transform .2s;
+  }
+  .nightmode-toggle:hover{ background:var(--accent-deep); transform:scale(1.06); }
+
+  body.dark-mode{
+    --paper:#1B1533;
+    --paper-dark:#251D40;
+    --accent:#9B7FD4;
+    --accent-deep:#C9A0D8;
+    --ink:#EDE6F7;
+    --lilac-line:#4A3D6B;
+    --cream-shadow: rgba(0,0,0,0.4);
+  }
+  body.dark-mode::after{
+    content:"";
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, #fff, transparent),
+      radial-gradient(1px 1px at 80% 10%, #fff, transparent),
+      radial-gradient(1px 1px at 30% 70%, #fff, transparent),
+      radial-gradient(1px 1px at 60% 40%, #fff, transparent),
+      radial-gradient(1px 1px at 90% 80%, #fff, transparent),
+      radial-gradient(1px 1px at 45% 90%, #fff, transparent),
+      radial-gradient(1px 1px at 15% 55%, #fff, transparent),
+      radial-gradient(1px 1px at 70% 60%, #fff, transparent);
+    opacity:0.5;
+    animation: twinkle 4s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle{ from{ opacity:0.25; } to{ opacity:0.8; } }
 
   .form-q{margin-bottom:20px;}
   .form-q p{font-weight:600; margin-bottom:8px;}
@@ -587,6 +644,7 @@
 <footer>— din toata inima pentru stefan —</footer>
 
 <button class="music-toggle" id="musicToggle" title="Muzică de fundal">🎵</button>
+<button class="nightmode-toggle" id="nightModeToggle" title="Mod noapte">🌙</button>
 <!--
   ADAUGĂ AICI MUZICA VOASTRĂ:
   Pune fișierul mp3 lângă acest fișier html (ex: muzica.mp3) și schimbă src-ul de mai jos,
@@ -693,12 +751,15 @@ async function updatePoem(id, updates){
 }
 
 /* ============ HERO (Firestore) ============ */
-const DEFAULT_HERO = {
-  eyebrow: '4 luni împreună iubituleeeeeeee',
-  title: 'te iubesc',
-  text: 'te iubesc',
-  photo: ''
-};
+const daysTogether = Math.max(0, Math.floor((new Date() - new Date(hero.startDate)) / 86400000));
+    overlay.innerHTML = `
+      <div class="hero-eyebrow">${hero.eyebrow}</div>
+      <div class="days-counter"><span class="days-counter-num" id="daysCounterNum">0</span><span class="days-counter-label">zile împreună</span></div>
+      <h1 class="hero-emotional-title">${hero.title}</h1>
+      <p class="hero-emotional-text">${hero.text}</p>
+      <button class="hero-edit-btn" id="editHeroBtn">✏️ editează</button>
+    `;
+    animateDaysCount(document.getElementById('daysCounterNum'), daysTogether);
 async function loadHero(){
   const doc = await db.collection('site').doc('hero').get();
   return doc.exists ? doc.data() : null;
@@ -1177,6 +1238,8 @@ async function initHero(){
           style="font-family:'Playfair Display', serif; font-size:1.3rem; padding:10px; border-radius:6px; border:1.5px solid var(--lilac-line);">
         <textarea id="heroTextInput" rows="5" placeholder="Textul emoțional"
           style="font-family:'Poppins', sans-serif; font-size:0.95rem; padding:10px; border-radius:6px; border:1.5px solid var(--lilac-line);">${hero.text}</textarea>
+       <label style="color:#EDE6F7; font-size:0.8rem;">De când sunteți împreună:</label>
+        <input type="date" id="heroStartDateInput" value="${hero.startDate}" style="padding:8px; border-radius:6px; border:1.5px solid var(--lilac-line);">
         <input type="file" id="heroPhotoInput" accept="image/*">
         <span style="color:#EDE6F7; font-size:0.8rem; font-style:italic;">${hero.photo ? 'Lasă gol ca să păstrezi poza actuală' : 'Poți adăuga acum o poză de hero'}</span>
         <div style="display:flex; gap:10px;">
@@ -1196,7 +1259,8 @@ async function initHero(){
       if(!title || !text) return;
       statusEl.textContent = 'Se salvează...';
       try{
-        const updates = { eyebrow: hero.eyebrow, title, text, photo: hero.photo || '' };
+      const startDate = document.getElementById('heroStartDateInput').value || hero.startDate;
+        const updates = { eyebrow: hero.eyebrow, title, text, photo: hero.photo || '', startDate };
         if(fileInput.files[0]){
           updates.photo = await uploadPhotoToImgBB(fileInput.files[0]);
         }
@@ -1559,7 +1623,9 @@ const gamesList = [
   { id:'question', icon:'❓', title:'intrebarea zilei', desc:'un pic cringiuță, dar asa sunt si eu, hihi :)))))' },
   { id:'mood', icon:'😊', title:'cum esti azi?', desc:'mai luam pulsul de la distanta' },
   { id:'journal', icon:'📖', title:'un mic jurnal ', desc:'in care sa mai scriem fiecare ce vrem' },
-  { id:'gallery', icon:'🎨', title:'aici se salveaza tot ce desenam', desc:'sa nu le pierdem' }
+{ id:'gallery', icon:'🎨', title:'aici se salveaza tot ce desenam', desc:'sa nu le pierdem' },
+  { id:'clock', icon:'🕐', title:'cat e ceasul la tine?', desc:'ca sa stim cand sa ne sunam' },
+  { id:'weather', icon:'🌦️', title:'cum e vremea la tine?', desc:'ploua sau e soare?' }
 ];
 
 function viewJocuriMenu(){
@@ -1615,7 +1681,9 @@ const GAME_BODIES = {
   question: `<div id="questionContent"><p class="empty-note">Se încarcă...</p></div>`,
   mood: `<div id="moodContent"><p class="empty-note">Se încarcă...</p></div>`,
   journal: `<div id="journalContent"><p class="empty-note">Se încarcă...</p></div>`,
-  gallery: `<div id="drawingGalleryContent"><p class="empty-note">Se încarcă...</p></div>`
+  gallery: `<div id="drawingGalleryContent"><p class="empty-note">Se încarcă...</p></div>`,
+  clock: `<div id="clockContent"><p class="empty-note">Se încarcă...</p></div>`,
+  weather: `<div id="weatherContent"><p class="empty-note">Se încarcă...</p></div>`
 };
 
 function viewGameDetail(gameId){
@@ -2235,12 +2303,100 @@ const musicDiv = document.getElementById('musicSettingsContent');
     renderMusicSettings();
   }
 }
+function weatherEmoji(code){
+  if(code===0) return '☀️';
+  if([1,2].includes(code)) return '🌤️';
+  if(code===3) return '☁️';
+  if([45,48].includes(code)) return '🌫️';
+  if([51,53,55,56,57].includes(code)) return '🌦️';
+  if([61,63,65,66,67].includes(code)) return '🌧️';
+  if([71,73,75,77].includes(code)) return '🌨️';
+  if([80,81,82].includes(code)) return '🌦️';
+  if([85,86].includes(code)) return '🌨️';
+  if([95,96,99].includes(code)) return '⛈️';
+  return '🌡️';
+}
+
+async function initWeather(){
+  const contentDiv = document.getElementById('weatherContent');
+  if(!contentDiv) return;
+  contentDiv.innerHTML = `
+    <div class="dual-clock-wrap">
+      <div class="clock-card">
+        <div class="clock-face" id="weatherClujFace"><span class="clock-icon">⏳</span></div>
+        <div class="clock-city">Cluj-Napoca</div>
+        <div class="clock-date" id="weatherClujTemp">—</div>
+      </div>
+      <div class="clock-card">
+        <div class="clock-face" id="weatherNYFace"><span class="clock-icon">⏳</span></div>
+        <div class="clock-city">New York</div>
+        <div class="clock-date" id="weatherNYTemp">—</div>
+      </div>
+    </div>
+    <p class="empty-note" style="text-align:center; margin-top:10px;">Actualizat live, de la Open-Meteo</p>
+  `;
+  try{
+    const [clujRes, nyRes] = await Promise.all([
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${CLUJ_COORDS.lat}&longitude=${CLUJ_COORDS.lng}&current=temperature_2m,weather_code&timezone=auto`),
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${NY_COORDS.lat}&longitude=${NY_COORDS.lng}&current=temperature_2m,weather_code&timezone=auto`)
+    ]);
+    const clujData = await clujRes.json();
+    const nyData = await nyRes.json();
+    document.getElementById('weatherClujFace').innerHTML = `<span class="clock-icon">${weatherEmoji(clujData.current.weather_code)}</span>`;
+    document.getElementById('weatherClujTemp').textContent = `${Math.round(clujData.current.temperature_2m)}°C`;
+    document.getElementById('weatherNYFace').innerHTML = `<span class="clock-icon">${weatherEmoji(nyData.current.weather_code)}</span>`;
+    document.getElementById('weatherNYTemp').textContent = `${Math.round(nyData.current.temperature_2m)}°C`;
+  }catch(e){
+    contentDiv.innerHTML += '<p class="empty-note" style="text-align:center;">Nu am putut încărca vremea acum.</p>';
+  }
+}
+
+async function initClock(){
+  const contentDiv = document.getElementById('clockContent');
+  if(!contentDiv) return;
+  contentDiv.innerHTML = `
+    <div class="dual-clock-wrap">
+      <div class="clock-card">
+        <div class="clock-face"><span class="clock-icon" id="clujIcon">☀️</span><span class="clock-time" id="clujTime">--:--</span></div>
+        <div class="clock-city">Cluj-Napoca</div>
+        <div class="clock-date" id="clujDate">—</div>
+      </div>
+      <div class="clock-card">
+        <div class="clock-face"><span class="clock-icon" id="nyIcon">☀️</span><span class="clock-time" id="nyTime">--:--</span></div>
+        <div class="clock-city">New York</div>
+        <div class="clock-date" id="nyDate">—</div>
+      </div>
+    </div>
+    <div class="clock-diff" id="clockDiff"></div>
+  `;
+  if(window._clockInterval) clearInterval(window._clockInterval);
+  function update(){
+    const now = new Date();
+    const clujHour = Number(now.toLocaleString('en-US', {timeZone:'Europe/Bucharest', hour:'2-digit', hour12:false}));
+    const nyHour = Number(now.toLocaleString('en-US', {timeZone:'America/New_York', hour:'2-digit', hour12:false}));
+    document.getElementById('clujTime').textContent = now.toLocaleTimeString('ro-RO', {timeZone:'Europe/Bucharest', hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    document.getElementById('nyTime').textContent = now.toLocaleTimeString('ro-RO', {timeZone:'America/New_York', hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    document.getElementById('clujDate').textContent = now.toLocaleDateString('ro-RO', {timeZone:'Europe/Bucharest', weekday:'long', day:'numeric', month:'long'});
+    document.getElementById('nyDate').textContent = now.toLocaleDateString('ro-RO', {timeZone:'America/New_York', weekday:'long', day:'numeric', month:'long'});
+    document.getElementById('clujIcon').textContent = (clujHour>=7 && clujHour<20) ? '☀️' : '🌙';
+    document.getElementById('nyIcon').textContent = (nyHour>=7 && nyHour<20) ? '☀️' : '🌙';
+
+    const clujZoned = new Date(now.toLocaleString('en-US', {timeZone:'Europe/Bucharest'}));
+    const nyZoned = new Date(now.toLocaleString('en-US', {timeZone:'America/New_York'}));
+    const diffHours = Math.round((clujZoned - nyZoned) / 3600000);
+    document.getElementById('clockDiff').textContent = `New York e cu ${diffHours} ore în urma Clujului`;
+  }
+  update();
+  window._clockInterval = setInterval(update, 1000);
+}
+
 function initGameById(id){
   const map = {
     countdown: initCountdown, moon: initMoon, puzzle: initPuzzle, drawing: initDrawing,
     memory: initMemory, wheel: initWheel, capsule: initCapsule, envelopes: initEnvelopes,
     streak: initStreakPage, map: initTravelMap, question: initDailyQuestion,
-    mood: initMood, journal: initJournal, gallery: initDrawingGallery
+    mood: initMood, journal: initJournal, gallery: initDrawingGallery,
+    clock: initClock, weather: initWeather
   };
   const fn = map[id];
   if(fn) fn();
@@ -2882,6 +3038,19 @@ document.getElementById('lightboxClose').addEventListener('click', ()=>{
 });
 document.getElementById('lightbox').addEventListener('click', (e)=>{
   if(e.target.id === 'lightbox') document.getElementById('lightbox').classList.remove('show');
+});
+
+/* ============ MOD NOAPTE ============ */
+const nightBtn = document.getElementById('nightModeToggle');
+(function applyNightPreference(){
+  const saved = localStorage.getItem('nightMode');
+  if(saved === 'on'){ document.body.classList.add('dark-mode'); nightBtn.textContent = '☀️'; }
+})();
+nightBtn.addEventListener('click', ()=>{
+  document.body.classList.toggle('dark-mode');
+  const isDark = document.body.classList.contains('dark-mode');
+  nightBtn.textContent = isDark ? '☀️' : '🌙';
+  localStorage.setItem('nightMode', isDark ? 'on' : 'off');
 });
 
 /* ============ MUSIC TOGGLE (YouTube) ============ */
