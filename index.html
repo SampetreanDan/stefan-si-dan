@@ -751,15 +751,22 @@ async function updatePoem(id, updates){
 }
 
 /* ============ HERO (Firestore) ============ */
-const daysTogether = Math.max(0, Math.floor((new Date() - new Date(hero.startDate)) / 86400000));
-    overlay.innerHTML = `
-      <div class="hero-eyebrow">${hero.eyebrow}</div>
-      <div class="days-counter"><span class="days-counter-num" id="daysCounterNum">0</span><span class="days-counter-label">zile împreună</span></div>
-      <h1 class="hero-emotional-title">${hero.title}</h1>
-      <p class="hero-emotional-text">${hero.text}</p>
-      <button class="hero-edit-btn" id="editHeroBtn">✏️ editează</button>
-    `;
-    animateDaysCount(document.getElementById('daysCounterNum'), daysTogether);
+const DEFAULT_HERO = {
+  eyebrow: '4 luni împreună iubituleeeeeeee',
+  title: 'te iubesc',
+  text: 'te iubesc',
+  photo: '',
+  startDate: '2026-01-01'
+};
+function animateDaysCount(el, target){
+  let current = 0;
+  const step = Math.max(1, Math.ceil(target/60));
+  const timer = setInterval(()=>{
+    current += step;
+    if(current >= target){ current = target; clearInterval(timer); }
+    el.textContent = current;
+  }, 16);
+}
 async function loadHero(){
   const doc = await db.collection('site').doc('hero').get();
   return doc.exists ? doc.data() : null;
@@ -768,6 +775,75 @@ async function saveHero(data){
   await db.collection('site').doc('hero').set(data, { merge: true });
 }
 
+async function initHero(){
+  const overlay = document.getElementById('heroOverlay');
+  const heroBg = document.getElementById('heroBg');
+  if(!overlay) return;
+
+  async function renderView(){
+    const stored = await loadHero();
+    const hero = { ...DEFAULT_HERO, ...(stored || {}) };
+    const daysTogether = Math.max(0, Math.floor((new Date() - new Date(hero.startDate)) / 86400000));
+    overlay.innerHTML = `
+      <div class="hero-eyebrow">${hero.eyebrow}</div>
+      <div class="days-counter"><span class="days-counter-num" id="daysCounterNum">0</span><span class="days-counter-label">zile împreună</span></div>
+      <h1 class="hero-emotional-title">${hero.title}</h1>
+      <p class="hero-emotional-text">${hero.text}</p>
+      <button class="hero-edit-btn" id="editHeroBtn">✏️ editează</button>
+    `;
+    animateDaysCount(document.getElementById('daysCounterNum'), daysTogether);
+    if(hero.photo){
+      heroBg.style.backgroundImage = `linear-gradient(rgba(43,31,69,0.25), rgba(43,31,69,0.25)), url('${hero.photo}')`;
+      heroBg.style.backgroundSize = 'cover';
+      heroBg.style.backgroundPosition = 'center';
+    }
+    document.getElementById('editHeroBtn').addEventListener('click', ()=> renderEdit(hero));
+  }
+
+  function renderEdit(hero){
+    overlay.innerHTML = `
+      <form id="heroEditForm" style="display:flex; flex-direction:column; gap:10px;">
+        <input type="text" id="heroTitleInput" value="${hero.title.replace(/"/g,'&quot;')}" placeholder="Titlul"
+          style="font-family:'Playfair Display', serif; font-size:1.3rem; padding:10px; border-radius:6px; border:1.5px solid var(--lilac-line);">
+        <textarea id="heroTextInput" rows="5" placeholder="Textul emoțional"
+          style="font-family:'Poppins', sans-serif; font-size:0.95rem; padding:10px; border-radius:6px; border:1.5px solid var(--lilac-line);">${hero.text}</textarea>
+        <label style="color:#EDE6F7; font-size:0.8rem;">De când sunteți împreună:</label>
+        <input type="date" id="heroStartDateInput" value="${hero.startDate}" style="padding:8px; border-radius:6px; border:1.5px solid var(--lilac-line);">
+        <input type="file" id="heroPhotoInput" accept="image/*">
+        <span style="color:#EDE6F7; font-size:0.8rem; font-style:italic;">${hero.photo ? 'Lasă gol ca să păstrezi poza actuală' : 'Poți adăuga acum o poză de hero'}</span>
+        <div style="display:flex; gap:10px;">
+          <button type="submit" class="hero-edit-btn">Salvează</button>
+          <button type="button" id="cancelHeroEdit" class="hero-edit-btn">Renunță</button>
+        </div>
+        <div class="upload-status" id="heroEditStatus" style="color:#EDE6F7;"></div>
+      </form>
+    `;
+    document.getElementById('cancelHeroEdit').addEventListener('click', renderView);
+    document.getElementById('heroEditForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const title = document.getElementById('heroTitleInput').value.trim();
+      const text = document.getElementById('heroTextInput').value.trim();
+      const fileInput = document.getElementById('heroPhotoInput');
+      const statusEl = document.getElementById('heroEditStatus');
+      if(!title || !text) return;
+      statusEl.textContent = 'Se salvează...';
+      try{
+        const startDate = document.getElementById('heroStartDateInput').value || hero.startDate;
+        const updates = { eyebrow: hero.eyebrow, title, text, photo: hero.photo || '', startDate };
+        if(fileInput.files[0]){
+          updates.photo = await uploadPhotoToImgBB(fileInput.files[0]);
+        }
+        await saveHero(updates);
+        renderView();
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
+    });
+  }
+
+  renderView();
+}
+  
 /* ============ NUMĂRĂTOARE + HARTĂ (Firestore) ============ */
 const CLUJ_COORDS = { lat:46.7712, lng:23.6236 };
 const NY_COORDS = { lat:40.7128, lng:-74.0060 };
