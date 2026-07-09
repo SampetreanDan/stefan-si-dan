@@ -272,7 +272,7 @@
   }
   .back-link:hover{text-decoration:underline;}
 
-  .card-grid{display:grid; grid-template-columns:repeat(auto-fill, 210px); justify-content:start; gap:26px;}
+ .card-grid{display:grid; grid-template-columns:repeat(auto-fill, 210px); justify-content:start; gap:26px;}
   .card{
     background:var(--paper); border:1px solid var(--lilac-line);
     box-shadow:0 10px 24px var(--cream-shadow); padding:16px; border-radius:4px;
@@ -291,7 +291,7 @@
   .card-caption{font-size:0.85rem; color:var(--ink); opacity:0.8; margin-top:4px; font-style:italic;}
 
   .poem-photo{width:100%; max-width:320px; border-radius:6px; border:1px solid var(--lilac-line); margin-bottom:20px;}
-  .poem-text{
+.poem-text{
     font-family:'Playfair Display', serif; font-size:0.95rem; line-height:1.9; white-space:pre-line;
     background-color:var(--paper); background-size:cover; background-position:center;
     border:1px solid var(--lilac-line); border-radius:6px; padding:30px;
@@ -314,7 +314,7 @@
     border:none; padding:10px 22px; border-radius:999px; cursor:pointer;
   }
   .upload-photo-form button:hover{ background:var(--accent-deep); }
-  .upload-status{ width:100%; font-size:0.82rem; color:var(--accent-deep); font-style:italic; }
+.upload-status{ width:100%; font-size:0.82rem; color:var(--accent-deep); font-style:italic; }
 
   .lightbox{
     display:none; position:fixed; inset:0; z-index:300;
@@ -338,7 +338,7 @@
     background:var(--paper-dark); border-left:3px solid var(--accent); border-radius:4px;
     padding:12px 16px; font-size:0.92rem;
   }
-  .comment-item .c-meta{font-family:'Special Elite', monospace; font-size:0.72rem; color:var(--accent-deep); margin-bottom:4px;}
+ .comment-item .c-meta{font-family:'Special Elite', monospace; font-size:0.72rem; color:var(--accent-deep); margin-bottom:4px;}
   .delete-btn{
     display:block; margin-top:8px; font-family:'Special Elite', monospace; font-size:0.72rem;
     background:none; border:none; color:#B0517A; cursor:pointer; padding:0; opacity:0.7;
@@ -441,6 +441,57 @@
   .spin-btn:hover{background:var(--accent-deep); transform:translateY(-2px);}
   .wheel-result{font-family:'Playfair Display', serif; font-style:italic; font-size:1.1rem; color:var(--accent-deep); text-align:center; min-height:1.4em;}
 
+  .capsule-locked{ text-align:center; padding:24px 10px; }
+  .capsule-icon{ font-size:3rem; margin-bottom:10px; }
+  .capsule-date{ font-family:'Special Elite', monospace; font-size:0.8rem; color:var(--accent); margin-top:8px; }
+  .capsule-open{ text-align:center; padding:20px; background:var(--paper-dark); border-radius:8px; font-family:'Playfair Display', serif; font-style:italic; font-size:1.1rem; color:var(--accent-deep); }
+
+  .envelope-grid{ display:grid; grid-template-columns:repeat(auto-fill, 64px); gap:10px; justify-content:center; }
+  .envelope{
+    width:64px; height:52px; background:var(--paper-dark); border:1px solid var(--lilac-line);
+    border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;
+    cursor:pointer; position:relative;
+  }
+  .envelope.opened{ background:var(--accent); color:var(--paper); }
+  .envelope-message-box{
+    margin-top:14px; background:var(--paper-dark); border-radius:8px; padding:16px;
+    font-style:italic; color:var(--accent-deep); text-align:center;
+  }
+
+  .streak-widget{ display:flex; align-items:center; justify-content:center; gap:16px; padding:10px 0 4px; }
+  .streak-number{ font-family:'Special Elite', monospace; font-size:2.4rem; color:var(--accent-deep); }
+  .streak-label{ font-size:0.78rem; color:var(--ink); opacity:0.75; }
+
+  .mood-row{ display:flex; gap:24px; justify-content:center; padding:6px 0; }
+  .mood-person{ text-align:center; }
+  .mood-emoji-big{ font-size:2.6rem; display:block; margin-bottom:4px; }
+  .mood-name{ font-family:'Special Elite', monospace; font-size:0.75rem; color:var(--accent-deep); }
+  .mood-time{ font-size:0.68rem; opacity:0.6; }
+  .mood-select-row{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
+  .mood-select-row button{ font-size:1.3rem; background:var(--paper-dark); border:1px solid var(--lilac-line); border-radius:8px; padding:6px 10px; cursor:pointer; }
+
+  .question-box{
+    text-align:center; font-family:'Playfair Display', serif; font-style:italic; font-size:1.1rem;
+    color:var(--accent-deep); padding:14px 4px 18px;
+  }
+
+  .journal-entry{
+    background:var(--paper-dark); border-left:3px solid var(--accent); border-radius:4px;
+    padding:12px 16px; margin-bottom:10px; font-size:0.92rem;
+  }
+
+  .form-q{margin-bottom:20px;}
+  .form-q p{font-weight:600; margin-bottom:8px;}
+  .form-opts{display:flex; flex-wrap:wrap; gap:8px;}
+  .form-opts button{font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); background:var(--paper-dark); padding:8px 14px; border-radius:999px; cursor:pointer; font-size:0.85rem; transition:.2s;}
+  .form-opts button.picked{background:var(--accent); color:var(--paper); border-color:var(--accent);}
+  .submit-btn{font-family:'Special Elite', monospace; background:var(--ink); color:var(--paper); border:none; padding:12px 28px; border-radius:999px; cursor:pointer; margin-top:6px;}
+  .submit-btn:hover{background:var(--accent-deep);}
+  .approved{margin-top:22px; text-align:center; padding:22px; border:3px solid var(--accent-deep); border-radius:8px; transform:rotate(-2deg); display:none;}
+  .approved.show{display:block; animation:stampIn .4s ease;}
+  @keyframes stampIn{from{opacity:0; transform:scale(1.4) rotate(-2deg);} to{opacity:1; transform:scale(1) rotate(-2deg);}}
+  .approved h3{color:var(--accent-deep); font-family:'Special Elite', monospace; font-size:1.4rem; letter-spacing:2px;}
+
   footer{text-align:center; padding:26px; font-family:'Special Elite', monospace; font-size:0.75rem; color:var(--accent);}
 
   .music-toggle{
@@ -499,11 +550,17 @@ const IMGBB_KEY = "8eee43d5919b01ec061e0a6d5ae04fd4";
 
 /* ============ DATE — completează aici cu conținutul vostru ============ */
 
+/* Lunile relației voastre, începând din Septembrie 2025.
+   PROIECT DE VIITOR: ca să adaugi Anul 2 (sau mai mulți ani), pur și simplu
+   adaugi un obiect nou în albumYears, cu id și startYear diferite —
+   toate cele 12 luni ale acelui an se generează automat mai jos. */
 const monthNames = ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
 
 const albumYears = [
   { id:'an-1', label:'Anul 1', startYear:2026 }
 ];
+// Generăm automat toți anii următori, de la 2027 până în 2126 —
+// suficient pentru următorii 100 de ani împreună 💜
 for(let i=2027, num=2; i<=2126; i++, num++){
   albumYears.push({ id:`an-${num}`, label:`Anul ${num}`, startYear:i });
 }
@@ -523,6 +580,9 @@ function generateMonthsData(){
   return months;
 }
 const monthsData = generateMonthsData();
+
+/* Poeziile trăiesc acum în Firestore, nu mai sunt fixe în cod —
+   le adaugi direct de pe pagina de Poezii, ca la poze. */
 
 /* ============ COMENTARII (Firestore) ============ */
 async function loadComments(poemId){
@@ -619,6 +679,136 @@ async function saveWheelOptions(options){
   await db.collection('site').doc('wheel').set({ options });
 }
 
+/* ============ CAPSULA DE TIMP ============ */
+async function loadCapsule(){
+  const doc = await db.collection('site').doc('capsule').get();
+  return doc.exists ? doc.data() : null;
+}
+async function saveCapsule(data){
+  await db.collection('site').doc('capsule').set(data);
+}
+
+/* ============ PLICURI SURPRIZĂ ============ */
+async function loadEnvelopes(){
+  const snapshot = await db.collection('envelopes').get();
+  const list = snapshot.docs.map(d=>({ id:d.id, ...d.data() }));
+  list.sort((a,b)=>a.timestamp - b.timestamp);
+  return list;
+}
+async function addEnvelope(text){
+  await db.collection('envelopes').add({ text, opened:false, timestamp: Date.now() });
+}
+async function openEnvelope(id){
+  await db.collection('envelopes').doc(id).update({ opened:true });
+}
+async function deleteEnvelope(id){
+  await db.collection('envelopes').doc(id).delete();
+}
+
+/* ============ STREAK ============ */
+async function loadStreak(){
+  const doc = await db.collection('site').doc('streak').get();
+  return doc.exists ? doc.data() : null;
+}
+async function saveStreak(data){
+  await db.collection('site').doc('streak').set(data);
+}
+
+/* ============ HARTA LOCURILOR ============ */
+async function loadTravelSpots(){
+  const snapshot = await db.collection('travelSpots').get();
+  return snapshot.docs.map(d=>({ id:d.id, ...d.data() }));
+}
+async function addTravelSpot(spot){
+  await db.collection('travelSpots').add({ ...spot, timestamp: Date.now() });
+}
+async function deleteTravelSpot(id){
+  await db.collection('travelSpots').doc(id).delete();
+}
+
+/* ============ ÎNTREBAREA ZILEI ============ */
+const DAILY_QUESTIONS = [
+  'Care e amintirea ta preferată cu mine?',
+  'Ce ți-e cel mai dor când suntem departe?',
+  'Care a fost momentul în care ai știut că mă iubești?',
+  'Ce calitate a mea te face cel mai mândru/mândră?',
+  'Unde vrei să mergem prima dată când te întorci?',
+  'Ce melodie îți amintește de noi?',
+  'Ce ai vrea să facem mai des împreună?',
+  'Care e cel mai frumos cadou pe care ți l-am făcut?',
+  'Ce te face să zâmbești când te gândești la mine?',
+  'Cum arată o zi perfectă cu mine?',
+  'Ce ai învățat despre tine din relația noastră?',
+  'Care e lucrul mărunt pe care fac și care-ți place cel mai mult?',
+  'Ce visezi pentru noi doi, peste 5 ani?',
+  'Care a fost cea mai amuzantă amintire de-a noastră?',
+  'Ce te liniștește cel mai mult când ești departe de mine?'
+];
+function getTodayQuestion(){
+  const start = new Date(new Date().getFullYear(), 0, 0);
+  const diff = new Date() - start;
+  const dayOfYear = Math.floor(diff / (1000*60*60*24));
+  return DAILY_QUESTIONS[dayOfYear % DAILY_QUESTIONS.length];
+}
+function getTodayKey(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+async function loadTodayAnswers(dateKey){
+  const snapshot = await db.collection('dailyAnswers').where('dateKey','==',dateKey).get();
+  const list = snapshot.docs.map(d=>({ id:d.id, ...d.data() }));
+  list.sort((a,b)=>a.timestamp - b.timestamp);
+  return list;
+}
+async function saveTodayAnswer(dateKey, question, name, text){
+  await db.collection('dailyAnswers').add({ dateKey, question, name, text, timestamp: Date.now() });
+}
+
+/* ============ CUM MĂ SIMT AZI ============ */
+async function loadMood(){
+  const doc = await db.collection('site').doc('mood').get();
+  return doc.exists ? doc.data() : null;
+}
+async function saveMoodFor(person, emoji){
+  await db.collection('site').doc('mood').set({
+    [person]: { emoji, updatedAt: Date.now() }
+  }, { merge:true });
+}
+
+/* ============ JURNALUL NOSTRU ============ */
+async function loadJournal(){
+  const snapshot = await db.collection('journal').get();
+  const list = snapshot.docs.map(d=>({ id:d.id, ...d.data() }));
+  list.sort((a,b)=>b.timestamp - a.timestamp);
+  return list;
+}
+async function addJournalEntry(author, text){
+  await db.collection('journal').add({ author, text, timestamp: Date.now() });
+}
+async function deleteJournalEntry(id){
+  await db.collection('journal').doc(id).delete();
+}
+
+/* ============ GALERIA DESENELOR ============ */
+async function loadDrawings(){
+  const snapshot = await db.collection('drawings').get();
+  const list = snapshot.docs.map(d=>({ id:d.id, ...d.data() }));
+  list.sort((a,b)=>b.timestamp - a.timestamp);
+  return list;
+}
+async function saveDrawingToGallery(url){
+  await db.collection('drawings').add({ url, timestamp: Date.now() });
+}
+async function uploadDataURLToImgBB(dataURL){
+  const base64 = dataURL.split(',')[1];
+  const formData = new FormData();
+  formData.append('image', base64);
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method:'POST', body: formData });
+  const data = await res.json();
+  if(!data.success) throw new Error('upload failed');
+  return data.data.url;
+}
+
 /* ============ POZE (ImgBB + Firestore) ============ */
 async function uploadPhotoToImgBB(file){
   const formData = new FormData();
@@ -698,7 +888,7 @@ async function router(){
     renderNav('amintiri');
     view.innerHTML = viewAniList();
     applyFirstPhotoThumbnails(view);
-  } else if(parts[0] === 'poezii' && parts[1]){
+} else if(parts[0] === 'poezii' && parts[1]){
     renderNav('poezii');
     view.innerHTML = viewPoemDetail(parts[1]);
     initPoemDetail(parts[1]);
@@ -707,10 +897,13 @@ async function router(){
     renderNav('poezii');
     view.innerHTML = viewPoezii();
     initPoeziiList();
+  } else if(parts[0] === 'jocuri' && parts[1]){
+    renderNav('jocuri');
+    view.innerHTML = viewGameDetail(parts[1]);
+    initGameById(parts[1]);
   } else if(parts[0] === 'jocuri'){
     renderNav('jocuri');
-    view.innerHTML = viewJocuri();
-    initGames();
+    view.innerHTML = viewJocuriMenu();
   } else {
     renderNav('');
     view.innerHTML = viewAcasa();
@@ -720,7 +913,11 @@ async function router(){
 
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', router);
+window.addEventListener('DOMContentLoaded', trackVisitStreak);
 
+// Navigare robustă: interceptăm clicurile pe linkurile interne (#/...)
+// ca să funcționeze corect chiar dacă mediul de previzualizare
+// nu declanșează implicit "hashchange".
 document.addEventListener('click', function(e){
   const a = e.target.closest('a[href^="#/"], a[href="#/"]');
   if(!a) return;
@@ -736,7 +933,7 @@ document.addEventListener('click', function(e){
 /* ============ VIEWS ============ */
 function viewAcasa(){
   return `
-  <div id="pixelGateWrap">
+ <div id="pixelGateWrap">
     <div class="pixel-gate" id="pixelGate">
       <div class="pixel-hearts">♥ ♥ ♥ ♥ ♥</div>
       <div class="pixel-title">saluuutii tutii frutii <span class="pixel-flower">🌸</span></div>
@@ -774,7 +971,9 @@ function viewAcasa(){
     </section>
 
     <section class="home-section">
-      ${viewJocuri()}
+      <h2 class="section-title">Joculețe de îndrăgostiți</h2>
+      <p class="section-sub">// alege o activitate</p>
+      <div class="months-scroll" id="homeGamesScroll"></div>
     </section>
 
   </div>`;
@@ -888,6 +1087,7 @@ async function initHero(){
 
 async function initHomeContent(){
   initHero();
+// Rândul cu lunile — doar anul curent, ca să nu încărcăm toți cei 100+ ani deodată
   const monthsScroll = document.getElementById('homeMonthsScroll');
   if(monthsScroll){
     const currentYearMonths = monthsData.filter(m=>m.yearId===albumYears[0].id);
@@ -899,6 +1099,7 @@ async function initHomeContent(){
     applyFirstPhotoThumbnails(monthsScroll);
   }
 
+ // Caruselul de poezii — poeziile reale din Firestore
   const track = document.getElementById('carouselTrack');
   if(track){
     const poems = await loadPoems();
@@ -917,7 +1118,15 @@ async function initHomeContent(){
     });
   }
 
-  initGames();
+  // Joculețele — doar link-uri ușoare, fiecare joc trăiește pe pagina lui
+  const gamesScroll = document.getElementById('homeGamesScroll');
+  if(gamesScroll){
+    gamesScroll.innerHTML = gamesList.map(g=>`
+      <a class="month-scroll-card card" href="#/jocuri/${g.id}">
+        <div class="photo-slot small"><span class="icon">${g.icon}</span></div>
+        <div class="card-label">${g.title}</div>
+      </a>`).join('');
+  }
 }
 
 function viewAniList(){
@@ -1117,7 +1326,7 @@ async function initMonthPhotos(monthId){
   const statusEl = document.getElementById('uploadStatus');
   if(!galleryDiv || !form) return;
 
-  async function refreshGallery(){
+async function refreshGallery(){
     const photos = await loadMonthPhotos(monthId);
     galleryDiv.innerHTML = photos.length
       ? photos.map(p=>`
@@ -1202,59 +1411,418 @@ async function initComments(poemId){
   refresh();
 }
 
-function viewJocuri(){
+const gamesList = [
+  { id:'countdown', icon:'✈️', title:'Numărătoare până ne revedem', desc:'zile, ore, minute — și distanța dintre noi' },
+  { id:'moon', icon:'🌙', title:'Aceeași lună, oriunde am fi', desc:'exact aceeași lună, chiar acum' },
+  { id:'puzzle', icon:'🧩', title:'Puzzle din noi', desc:'alege o poză, rezolvă-l, descoperă mesajul ascuns' },
+  { id:'drawing', icon:'✏️', title:'Tablă de desenat împreună', desc:'desenați amândoi, live, din locuri diferite' },
+  { id:'memory', icon:'🧠', title:'Perechile de dor', desc:'joc de memorie cu poze de-ale voastre' },
+  { id:'wheel', icon:'🎡', title:'Roata dorurilor', desc:'scrie-ți propriile idei, apoi învârte' },
+  { id:'capsule', icon:'🕰️', title:'Capsula de timp', desc:'o scrisoare sigilată până la o dată aleasă' },
+  { id:'envelopes', icon:'🧧', title:'Plicuri surpriză', desc:'deschideți câte un plic, pe rând' },
+  { id:'streak', icon:'🔥', title:'Streak-ul nostru', desc:'câte zile la rând am trecut pe-aici' },
+  { id:'map', icon:'🗺️', title:'Harta locurilor de vizitat', desc:'locuri pe care vrem să le vedem împreună' },
+  { id:'question', icon:'❓', title:'Întrebarea zilei', desc:'o întrebare nouă, în fiecare zi' },
+  { id:'mood', icon:'😊', title:'Cum mă simt azi', desc:'starea fiecăruia, dintr-o privire' },
+  { id:'journal', icon:'📖', title:'Jurnalul nostru', desc:'ce am făcut, zi de zi, doar al nostru' },
+  { id:'gallery', icon:'🎨', title:'Galeria desenelor', desc:'toate desenele salvate, la un loc' }
+];
+
+function viewJocuriMenu(){
   return `
   <h2 class="section-title">Joculețe de îndrăgostiți</h2>
-  <p class="section-sub">// trei jocuri mici, pentru pauzele de dor</p>
-  <div class="games-grid">
-    <div class="game-card">
-      <h3 class="game-title">Numărătoare până ne revedem ✈️</h3>
-      <div class="game-sub">// zile, ore, minute, secunde — și distanța dintre noi</div>
-      <div id="countdownContent"><p class="empty-note">Se încarcă...</p></div>
-    </div>
-    <div class="game-card">
-      <h3 class="game-title">Aceeași lună, oriunde am fi 🌙</h3>
-      <div class="game-sub">// exact aceeași lună, văzută din Cluj și din New York, chiar acum</div>
-      <div class="moon-widget">
-        <div class="moon-emoji" id="moonEmoji">🌕</div>
-        <div class="moon-info">
-          <div class="moon-phase-name" id="moonPhaseName">—</div>
-          <div class="moon-illumination" id="moonIllumination">—</div>
-        </div>
-      </div>
-      <p class="empty-note" style="text-align:center; margin-top:8px;">Indiferent unde suntem, ne uităm la aceeași lună, în aceeași noapte 💜</p>
-    </div>
-    <div class="game-card">
-      <h3 class="game-title">Puzzle din noi 🧩</h3>
-      <div class="game-sub">// alege o poză, rezolvă-l, descoperă mesajul ascuns</div>
-      <div id="puzzleContent"><p class="empty-note">Se încarcă...</p></div>
-    </div>
-    <div class="game-card">
-      <h3 class="game-title">Tablă de desenat împreună ✏️</h3>
-      <div class="game-sub">// desenați amândoi, live, din locuri diferite</div>
-      <canvas id="drawCanvas" class="draw-canvas"></canvas>
-      <div class="draw-toolbar">
-        <div class="draw-palette" id="drawPalette"></div>
-        <input type="color" id="drawColor" value="#7C5CBF">
-        <label>grosime</label>
-        <input type="range" id="drawWidth" min="1" max="24" value="4">
-        <button type="button" id="drawEraserBtn" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">🧼 radieră</button>
-        <button type="button" id="drawUndoBtn" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">↩️ undo</button>
-        <button type="button" id="drawSaveBtn" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none;">💾 salvează poza</button>
-        <button type="button" id="drawClearBtn" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">🗑️ șterge tabla</button>
+  <p class="section-sub">// alege o activitate</p>
+  <div class="card-grid">
+    ${gamesList.map(g=>`
+      <a class="card" href="#/jocuri/${g.id}">
+        <div class="photo-slot small"><span class="icon">${g.icon}</span></div>
+        <div class="card-label">${g.title}</div>
+        <div class="card-caption">${g.desc}</div>
+      </a>`).join('')}
+  </div>`;
+}
+
+const GAME_BODIES = {
+  countdown: `<div id="countdownContent"><p class="empty-note">Se încarcă...</p></div>`,
+  moon: `
+    <div class="moon-widget">
+      <div class="moon-emoji" id="moonEmoji">🌕</div>
+      <div class="moon-info">
+        <div class="moon-phase-name" id="moonPhaseName">—</div>
+        <div class="moon-illumination" id="moonIllumination">—</div>
       </div>
     </div>
+    <p class="empty-note" style="text-align:center; margin-top:8px;">Indiferent unde suntem, ne uităm la aceeași lună, în aceeași noapte 💜</p>`,
+  puzzle: `<div id="puzzleContent"><p class="empty-note">Se încarcă...</p></div>`,
+  drawing: `
+    <canvas id="drawCanvas" class="draw-canvas"></canvas>
+    <div class="draw-toolbar">
+      <div class="draw-palette" id="drawPalette"></div>
+      <input type="color" id="drawColor" value="#7C5CBF">
+      <label>grosime</label>
+      <input type="range" id="drawWidth" min="1" max="24" value="4">
+      <button type="button" id="drawEraserBtn" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">🧼 radieră</button>
+      <button type="button" id="drawUndoBtn" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">↩️ undo</button>
+      <button type="button" id="drawSaveBtn" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none;">💾 salvează poza</button>
+      <button type="button" id="drawClearBtn" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">🗑️ șterge tabla</button>
+    </div>`,
+  memory: `<div id="memoryContent"><p class="empty-note">Se încarcă...</p></div>`,
+  wheel: `<div id="wheelContent"><p class="empty-note">Se încarcă...</p></div>`,
+  capsule: `<div id="capsuleContent"><p class="empty-note">Se încarcă...</p></div>`,
+  envelopes: `<div id="envelopesContent"><p class="empty-note">Se încarcă...</p></div>`,
+  streak: `<div id="streakContent"><p class="empty-note">Se încarcă...</p></div>`,
+  map: `<div id="travelMapContent"><p class="empty-note">Se încarcă...</p></div>`,
+  question: `<div id="questionContent"><p class="empty-note">Se încarcă...</p></div>`,
+  mood: `<div id="moodContent"><p class="empty-note">Se încarcă...</p></div>`,
+  journal: `<div id="journalContent"><p class="empty-note">Se încarcă...</p></div>`,
+  gallery: `<div id="drawingGalleryContent"><p class="empty-note">Se încarcă...</p></div>`
+};
+
+function viewGameDetail(gameId){
+  const game = gamesList.find(g=>g.id===gameId);
+  if(!game) return '<p>Jocul nu a fost găsit.</p>';
+  return `
+  <a class="back-link" href="#/jocuri">← înapoi la Joculețe</a>
+  <div class="games-grid" style="max-width:640px; margin:0 auto;">
     <div class="game-card">
-      <h3 class="game-title">Perechile de dor 🧩</h3>
-      <div class="game-sub">// alege poze de-ale voastre pentru joc</div>
-      <div id="memoryContent"><p class="empty-note">Se încarcă...</p></div>
-    </div>
-    <div class="game-card">
-      <h3 class="game-title">Roata dorurilor 🎡</h3>
-      <div class="game-sub">// scrie-ți propriile idei, apoi învârte</div>
-      <div id="wheelContent"><p class="empty-note">Se încarcă...</p></div>
+      <h3 class="game-title">${game.icon} ${game.title}</h3>
+      <div class="game-sub">// ${game.desc}</div>
+      ${GAME_BODIES[gameId] || ''}
     </div>
   </div>`;
+}
+
+async function initCapsule(){
+  const contentDiv = document.getElementById('capsuleContent');
+  if(!contentDiv) return;
+
+  async function renderView(){
+    const capsule = await loadCapsule();
+    if(!capsule){
+      renderSetup();
+      return;
+    }
+    const now = new Date();
+    const unlock = new Date(capsule.unlockDate);
+    if(now < unlock){
+      const diffDays = Math.ceil((unlock - now) / (1000*60*60*24));
+      contentDiv.innerHTML = `
+        <div class="capsule-locked">
+          <div class="capsule-icon">🔒</div>
+          <p>O scrisoare așteaptă, sigilată.</p>
+          <div class="capsule-date">Se deschide pe ${unlock.toLocaleDateString('ro-RO')} — ${diffDays} zile rămase</div>
+        </div>`;
+    } else {
+      contentDiv.innerHTML = `
+        <div class="capsule-open">🔓 ${capsule.message}</div>
+        <div class="puzzle-actions">
+          <button class="hero-edit-btn" id="capsuleResetBtn" style="background:var(--paper-dark); color:var(--ink);">✏️ scrie o capsulă nouă</button>
+        </div>`;
+      document.getElementById('capsuleResetBtn').addEventListener('click', renderSetup);
+    }
+  }
+
+  function renderSetup(){
+    contentDiv.innerHTML = `
+      <form class="puzzle-setup-form" id="capsuleForm">
+        <span class="empty-note">Scrie un mesaj care rămâne sigilat până la o dată aleasă de tine</span>
+        <textarea id="capsuleMessage" rows="4" placeholder="Scrie mesajul aici..." required
+          style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:10px; font-size:0.9rem; background:var(--paper-dark);"></textarea>
+        <input type="date" id="capsuleDate" required style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:8px; background:var(--paper-dark);">
+        <button type="submit" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none; align-self:flex-start;">Sigilează capsula</button>
+        <div class="upload-status" id="capsuleStatus"></div>
+      </form>`;
+    document.getElementById('capsuleForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const message = document.getElementById('capsuleMessage').value.trim();
+      const unlockDate = document.getElementById('capsuleDate').value;
+      const statusEl = document.getElementById('capsuleStatus');
+      if(!message || !unlockDate) return;
+      statusEl.textContent = 'Se salvează...';
+      try{
+        await saveCapsule({ message, unlockDate });
+        renderView();
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
+    });
+  }
+
+  renderView();
+}
+
+async function initEnvelopes(){
+  const contentDiv = document.getElementById('envelopesContent');
+  if(!contentDiv) return;
+
+  async function render(){
+    const envelopes = await loadEnvelopes();
+    contentDiv.innerHTML = `
+      <div class="envelope-grid" id="envelopeGrid">
+        ${envelopes.map((env,i)=>`
+          <div class="envelope ${env.opened ? 'opened' : ''}" data-id="${env.id}" data-index="${i}">
+            ${env.opened ? '💌' : '✉️'}
+          </div>`).join('')}
+      </div>
+      <div id="envelopeMessage"></div>
+      <form class="upload-photo-form" id="addEnvelopeForm" style="margin-top:20px;">
+        <input type="text" id="newEnvelopeText" placeholder="Scrie un mesaj/o provocare pentru un plic nou" required>
+        <button type="submit">Adaugă plic</button>
+      </form>
+    `;
+    document.querySelectorAll('#envelopeGrid .envelope').forEach(el=>{
+      el.addEventListener('click', async ()=>{
+        const idx = Number(el.dataset.index);
+        const env = envelopes[idx];
+        document.getElementById('envelopeMessage').innerHTML = `<div class="envelope-message-box">💌 ${env.text}</div>`;
+        if(!env.opened){
+          await openEnvelope(env.id);
+          el.classList.add('opened');
+          el.textContent = '💌';
+        }
+      });
+    });
+    document.getElementById('addEnvelopeForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const input = document.getElementById('newEnvelopeText');
+      const text = input.value.trim();
+      if(!text) return;
+      await addEnvelope(text);
+      input.value = '';
+      render();
+    });
+  }
+
+  render();
+}
+
+async function initStreakPage(){
+  const contentDiv = document.getElementById('streakContent');
+  if(!contentDiv) return;
+  const streak = await loadStreak();
+  const current = streak ? streak.current : 0;
+  const longest = streak ? streak.longest : 0;
+  contentDiv.innerHTML = `
+    <div class="streak-widget">
+      <div class="streak-number">🔥 ${current}</div>
+      <div class="streak-label">zile la rând<br>cel mai lung: ${longest} zile</div>
+    </div>
+    <p class="empty-note" style="text-align:center; margin-top:10px;">Se actualizează automat de fiecare dată când vreunul din voi trece pe site</p>
+  `;
+}
+async function trackVisitStreak(){
+  if(window._streakTracked) return;
+  window._streakTracked = true;
+  try{
+    const todayKey = getTodayKey();
+    const streak = await loadStreak();
+    if(!streak){
+      await saveStreak({ lastDate: todayKey, current: 1, longest: 1 });
+      return;
+    }
+    if(streak.lastDate === todayKey) return;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+    const newCurrent = streak.lastDate === yKey ? (streak.current || 0) + 1 : 1;
+    const newLongest = Math.max(newCurrent, streak.longest || 0);
+    await saveStreak({ lastDate: todayKey, current: newCurrent, longest: newLongest });
+  }catch(e){}
+}
+
+async function initTravelMap(){
+  const contentDiv = document.getElementById('travelMapContent');
+  if(!contentDiv) return;
+  contentDiv.innerHTML = `
+    <p class="empty-note" style="margin-bottom:10px;">Dă click pe hartă ca să adaugi un loc</p>
+    <div class="countdown-map" id="travelMap" style="height:280px;"></div>
+    <div id="travelSpotsList" style="margin-top:14px;"></div>
+  `;
+  const mapEl = document.getElementById('travelMap');
+  const map = L.map(mapEl).setView([46.77, 23.62], 4);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap contributors' }).addTo(map);
+  setTimeout(()=> map.invalidateSize(), 200);
+
+  const markers = {};
+  async function loadAndRenderSpots(){
+    const spots = await loadTravelSpots();
+    Object.values(markers).forEach(m=>map.removeLayer(m));
+    const listDiv = document.getElementById('travelSpotsList');
+    listDiv.innerHTML = spots.length ? spots.map(s=>`
+      <div class="journal-entry">
+        <strong>${s.name}</strong> — ${s.note || ''}
+        <button class="delete-btn" data-id="${s.id}">🗑️ șterge</button>
+      </div>`).join('') : '<p class="empty-note">Niciun loc adăugat încă.</p>';
+    listDiv.querySelectorAll('.delete-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        await deleteTravelSpot(btn.dataset.id);
+        loadAndRenderSpots();
+      });
+    });
+    spots.forEach(s=>{
+      const m = L.marker([s.lat, s.lng]).addTo(map).bindPopup(`<strong>${s.name}</strong><br>${s.note||''}`);
+      markers[s.id] = m;
+    });
+  }
+
+  map.on('click', async (e)=>{
+    const name = prompt('Numele locului:');
+    if(!name) return;
+    const note = prompt('O mică notiță (opțional):') || '';
+    await addTravelSpot({ lat:e.latlng.lat, lng:e.latlng.lng, name, note });
+    loadAndRenderSpots();
+  });
+
+  loadAndRenderSpots();
+}
+
+async function initDailyQuestion(){
+  const contentDiv = document.getElementById('questionContent');
+  if(!contentDiv) return;
+  const question = getTodayQuestion();
+  const dateKey = getTodayKey();
+
+  async function render(){
+    contentDiv.innerHTML = `
+      <div class="question-box">"${question}"</div>
+      <div class="comment-list" id="answersList"></div>
+      <div class="comment-form">
+        <input type="text" id="answerName" placeholder="Numele tău">
+        <textarea id="answerText" rows="3" placeholder="Scrie răspunsul tău..."></textarea>
+        <button id="submitAnswer">Trimite</button>
+      </div>
+    `;
+    const answers = await loadTodayAnswers(dateKey);
+    document.getElementById('answersList').innerHTML = answers.length
+      ? answers.map(a=>`<div class="comment-item"><div class="c-meta">${a.name}</div>${a.text}</div>`).join('')
+      : '<p class="empty-note">Niciun răspuns încă azi.</p>';
+
+    document.getElementById('submitAnswer').addEventListener('click', async ()=>{
+      const name = document.getElementById('answerName').value.trim() || 'Anonim';
+      const text = document.getElementById('answerText').value.trim();
+      if(!text) return;
+      await saveTodayAnswer(dateKey, question, name, text);
+      render();
+    });
+  }
+  render();
+}
+
+async function initMood(){
+  const contentDiv = document.getElementById('moodContent');
+  if(!contentDiv) return;
+  const moodEmojis = ['😊','😍','😴','😔','🥰','😤','🤒','🥳','😌','😭'];
+
+  async function render(){
+    const mood = await loadMood();
+    const dan = mood && mood.dan;
+    const stefan = mood && mood.stefan;
+    contentDiv.innerHTML = `
+      <div class="mood-row">
+        <div class="mood-person">
+          <span class="mood-emoji-big">${dan ? dan.emoji : '❔'}</span>
+          <div class="mood-name">Dan</div>
+          <div class="mood-time">${dan ? new Date(dan.updatedAt).toLocaleString('ro-RO') : ''}</div>
+        </div>
+        <div class="mood-person">
+          <span class="mood-emoji-big">${stefan ? stefan.emoji : '❔'}</span>
+          <div class="mood-name">Ștefan</div>
+          <div class="mood-time">${stefan ? new Date(stefan.updatedAt).toLocaleString('ro-RO') : ''}</div>
+        </div>
+      </div>
+      <p class="empty-note" style="text-align:center; margin-top:8px;">Cine ești?</p>
+      <div class="mood-select-row" id="whoAmI">
+        <button data-who="dan" class="delete-btn" style="opacity:1; border:1.5px solid var(--lilac-line); border-radius:999px; padding:6px 14px;">Dan</button>
+        <button data-who="stefan" class="delete-btn" style="opacity:1; border:1.5px solid var(--lilac-line); border-radius:999px; padding:6px 14px;">Ștefan</button>
+      </div>
+      <div class="mood-select-row" id="moodPicker" style="display:none;"></div>
+    `;
+    document.querySelectorAll('#whoAmI button').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const who = b.dataset.who;
+        const picker = document.getElementById('moodPicker');
+        picker.style.display = 'flex';
+        picker.innerHTML = moodEmojis.map(e=>`<button data-emoji="${e}">${e}</button>`).join('');
+        picker.querySelectorAll('button').forEach(eb=>{
+          eb.addEventListener('click', async ()=>{
+            await saveMoodFor(who, eb.dataset.emoji);
+            render();
+          });
+        });
+      });
+    });
+  }
+  render();
+}
+
+async function initJournal(){
+  const contentDiv = document.getElementById('journalContent');
+  if(!contentDiv) return;
+
+  async function render(){
+    const entries = await loadJournal();
+    contentDiv.innerHTML = `
+      <div id="journalList">
+        ${entries.length ? entries.map(en=>`
+          <div class="journal-entry">
+            <div class="c-meta" style="font-family:'Special Elite', monospace; font-size:0.72rem; color:var(--accent-deep); margin-bottom:4px;">
+              ${en.author} · ${new Date(en.timestamp).toLocaleDateString('ro-RO')}
+            </div>
+            ${en.text}
+            <button class="delete-btn" data-id="${en.id}">🗑️ șterge</button>
+          </div>`).join('') : '<p class="empty-note">Niciun jurnal încă — scrie primul mai jos.</p>'}
+      </div>
+      <div class="comment-form" style="margin-top:16px;">
+        <input type="text" id="journalAuthor" placeholder="Numele tău">
+        <textarea id="journalText" rows="4" placeholder="Ce ai făcut azi?"></textarea>
+        <button id="submitJournal">Adaugă în jurnal</button>
+      </div>
+    `;
+    document.querySelectorAll('#journalList .delete-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm('Sigur vrei să ștergi această însemnare?')) return;
+        await deleteJournalEntry(btn.dataset.id);
+        render();
+      });
+    });
+    document.getElementById('submitJournal').addEventListener('click', async ()=>{
+      const author = document.getElementById('journalAuthor').value.trim() || 'Anonim';
+      const text = document.getElementById('journalText').value.trim();
+      if(!text) return;
+      await addJournalEntry(author, text);
+      render();
+    });
+  }
+  render();
+}
+
+async function initDrawingGallery(){
+  const contentDiv = document.getElementById('drawingGalleryContent');
+  if(!contentDiv) return;
+  const drawings = await loadDrawings();
+  contentDiv.innerHTML = drawings.length
+    ? `<div class="photo-gallery">${drawings.map(d=>`
+        <div class="gallery-item">
+          <div class="photo-slot small" style="background-image:url('${d.url}')" data-url="${d.url}"></div>
+        </div>`).join('')}</div>`
+    : '<p class="empty-note">Nicio poză salvată încă — salvați un desen din Tabla de desenat.</p>';
+  contentDiv.querySelectorAll('.photo-slot').forEach(slot=>{
+    slot.addEventListener('click', ()=>{
+      document.getElementById('lightboxImg').src = slot.dataset.url;
+      document.getElementById('lightbox').classList.add('show');
+    });
+  });
+}
+
+function initGameById(id){
+  const map = {
+    countdown: initCountdown, moon: initMoon, puzzle: initPuzzle, drawing: initDrawing,
+    memory: initMemory, wheel: initWheel, capsule: initCapsule, envelopes: initEnvelopes,
+    streak: initStreakPage, map: initTravelMap, question: initDailyQuestion,
+    mood: initMood, journal: initJournal, gallery: initDrawingGallery
+  };
+  const fn = map[id];
+  if(fn) fn();
 }
 
 function initMoon(){
@@ -1453,6 +2021,7 @@ async function initPuzzle(){
   function renderBoard(config){
     const n = config.gridSize;
     let order = Array.from({length:n*n}, (_,i)=>i);
+    // amestecăm până nu mai e rezolvat din start
     do{
       for(let i=order.length-1; i>0; i--){
         const j = Math.floor(Math.random()*(i+1));
@@ -1671,17 +2240,24 @@ function initDrawing(){
     await db.collection('site').doc('drawing').set({ strokes: [] });
   });
 
-  saveBtn.addEventListener('click', ()=>{
+  saveBtn.addEventListener('click', async ()=>{
     const tmp = document.createElement('canvas');
     tmp.width = canvas.width; tmp.height = canvas.height;
     const tctx = tmp.getContext('2d');
     tctx.fillStyle = '#ffffff';
     tctx.fillRect(0,0,tmp.width,tmp.height);
     tctx.drawImage(canvas, 0, 0);
+    const dataURL = tmp.toDataURL('image/png');
+
     const link = document.createElement('a');
     link.download = 'desenul-nostru.png';
-    link.href = tmp.toDataURL('image/png');
+    link.href = dataURL;
     link.click();
+
+    try{
+      const url = await uploadDataURLToImgBB(dataURL);
+      await saveDrawingToGallery(url);
+    }catch(e){}
   });
 }
 
