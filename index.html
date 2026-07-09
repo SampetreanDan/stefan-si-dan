@@ -386,6 +386,40 @@
     padding:8px; font-size:0.9rem; background:var(--paper-dark);
   }
 
+  .puzzle-setup-form{ display:flex; flex-direction:column; gap:12px; }
+  .puzzle-setup-form input[type="text"]{
+    font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px;
+    padding:10px; font-size:0.9rem; background:var(--paper-dark);
+  }
+  .puzzle-size-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .puzzle-board{
+    display:grid; gap:2px; background:var(--lilac-line); border-radius:8px; overflow:hidden;
+    aspect-ratio:1; max-width:380px; margin:0 auto;
+  }
+  .puzzle-piece{ background-color:var(--paper-dark); cursor:pointer; transition:filter .15s, outline .1s; }
+  .puzzle-piece.selected{ outline:3px solid var(--accent); outline-offset:-3px; filter:brightness(1.08); }
+  .puzzle-solved-message{
+    text-align:center; margin-top:18px; padding:22px; background:var(--paper-dark); border-radius:8px;
+    font-family:'Playfair Display', serif; font-style:italic; font-size:1.05rem; color:var(--accent-deep);
+    animation:stampIn .4s ease;
+  }
+  .puzzle-actions{ display:flex; gap:10px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
+
+  .sky-embed{
+    position:relative; width:100%; aspect-ratio:16/9; border-radius:8px; overflow:hidden;
+    border:1px solid var(--lilac-line); background:var(--paper-dark);
+  }
+  .sky-embed iframe{ width:100%; height:100%; border:0; }
+
+  .draw-canvas{
+    width:100%; aspect-ratio:4/3; background:#fff; border-radius:8px;
+    border:1px solid var(--lilac-line); touch-action:none; cursor:crosshair; display:block;
+  }
+  .draw-toolbar{ display:flex; gap:12px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+  .draw-toolbar input[type="color"]{ width:40px; height:32px; border:none; border-radius:6px; cursor:pointer; padding:0; }
+  .draw-toolbar input[type="range"]{ flex:1; min-width:100px; }
+  .draw-toolbar label{ font-size:0.78rem; color:var(--ink); opacity:0.75; }
+
   .memory-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; max-width:420px; margin:0 auto;}
   .mem-card{aspect-ratio:1; perspective:600px; cursor:pointer;}
   .mem-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
@@ -403,18 +437,6 @@
   .spin-btn{font-family:'Special Elite', monospace; background:var(--accent); color:var(--paper); border:none; padding:12px 30px; border-radius:999px; font-size:0.95rem; cursor:pointer; transition:transform .2s, background .2s;}
   .spin-btn:hover{background:var(--accent-deep); transform:translateY(-2px);}
   .wheel-result{font-family:'Playfair Display', serif; font-style:italic; font-size:1.1rem; color:var(--accent-deep); text-align:center; min-height:1.4em;}
-
-  .form-q{margin-bottom:20px;}
-  .form-q p{font-weight:600; margin-bottom:8px;}
-  .form-opts{display:flex; flex-wrap:wrap; gap:8px;}
-  .form-opts button{font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); background:var(--paper-dark); padding:8px 14px; border-radius:999px; cursor:pointer; font-size:0.85rem; transition:.2s;}
-  .form-opts button.picked{background:var(--accent); color:var(--paper); border-color:var(--accent);}
-  .submit-btn{font-family:'Special Elite', monospace; background:var(--ink); color:var(--paper); border:none; padding:12px 28px; border-radius:999px; cursor:pointer; margin-top:6px;}
-  .submit-btn:hover{background:var(--accent-deep);}
-  .approved{margin-top:22px; text-align:center; padding:22px; border:3px solid var(--accent-deep); border-radius:8px; transform:rotate(-2deg); display:none;}
-  .approved.show{display:block; animation:stampIn .4s ease;}
-  @keyframes stampIn{from{opacity:0; transform:scale(1.4) rotate(-2deg);} to{opacity:1; transform:scale(1) rotate(-2deg);}}
-  .approved h3{color:var(--accent-deep); font-family:'Special Elite', monospace; font-size:1.4rem; letter-spacing:2px;}
 
   footer{text-align:center; padding:26px; font-family:'Special Elite', monospace; font-size:0.75rem; color:var(--accent);}
 
@@ -474,17 +496,11 @@ const IMGBB_KEY = "8eee43d5919b01ec061e0a6d5ae04fd4";
 
 /* ============ DATE — completează aici cu conținutul vostru ============ */
 
-/* Lunile relației voastre, începând din Septembrie 2025.
-   PROIECT DE VIITOR: ca să adaugi Anul 2 (sau mai mulți ani), pur și simplu
-   adaugi un obiect nou în albumYears, cu id și startYear diferite —
-   toate cele 12 luni ale acelui an se generează automat mai jos. */
 const monthNames = ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
 
 const albumYears = [
   { id:'an-1', label:'Anul 1', startYear:2026 }
 ];
-// Generăm automat toți anii următori, de la 2027 până în 2126 —
-// suficient pentru următorii 100 de ani împreună 💜
 for(let i=2027, num=2; i<=2126; i++, num++){
   albumYears.push({ id:`an-${num}`, label:`Anul ${num}`, startYear:i });
 }
@@ -504,9 +520,6 @@ function generateMonthsData(){
   return months;
 }
 const monthsData = generateMonthsData();
-
-/* Poeziile trăiesc acum în Firestore, nu mai sunt fixe în cod —
-   le adaugi direct de pe pagina de Poezii, ca la poze. */
 
 /* ============ COMENTARII (Firestore) ============ */
 async function loadComments(poemId){
@@ -578,6 +591,16 @@ async function loadCountdown(){
 async function saveCountdown(data){
   await db.collection('site').doc('countdown').set(data, { merge: true });
 }
+
+/* ============ PUZZLE (Firestore) ============ */
+async function loadPuzzle(){
+  const doc = await db.collection('site').doc('puzzle').get();
+  return doc.exists ? doc.data() : null;
+}
+async function savePuzzle(data){
+  await db.collection('site').doc('puzzle').set(data);
+}
+
 /* ============ POZE (ImgBB + Firestore) ============ */
 async function uploadPhotoToImgBB(file){
   const formData = new FormData();
@@ -680,9 +703,6 @@ async function router(){
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', router);
 
-// Navigare robustă: interceptăm clicurile pe linkurile interne (#/...)
-// ca să funcționeze corect chiar dacă mediul de previzualizare
-// nu declanșează implicit "hashchange".
 document.addEventListener('click', function(e){
   const a = e.target.closest('a[href^="#/"], a[href="#/"]');
   if(!a) return;
@@ -753,7 +773,7 @@ function initAcasaGate(){
   const noMessages = [
     'heeei, ce faci?!?!?!?!',
     'degeaba incerci ;)))',
-    'iubituleeee, nu e voie, caca'
+    'iibituleeee, nu e voie, caca'
   ];
   noBtn.addEventListener('mouseenter', ()=>{
     dodgeCount++;
@@ -850,7 +870,6 @@ async function initHero(){
 
 async function initHomeContent(){
   initHero();
-  // Rândul cu lunile — doar anul curent, ca să nu încărcăm toți cei 100+ ani deodată
   const monthsScroll = document.getElementById('homeMonthsScroll');
   if(monthsScroll){
     const currentYearMonths = monthsData.filter(m=>m.yearId===albumYears[0].id);
@@ -862,7 +881,6 @@ async function initHomeContent(){
     applyFirstPhotoThumbnails(monthsScroll);
   }
 
-  // Caruselul de poezii — poeziile reale din Firestore
   const track = document.getElementById('carouselTrack');
   if(track){
     const poems = await loadPoems();
@@ -881,7 +899,6 @@ async function initHomeContent(){
     });
   }
 
-  // Joculețele (aceleași funcții ca la pagina dedicată)
   initGames();
 }
 
@@ -1178,6 +1195,30 @@ function viewJocuri(){
       <div id="countdownContent"><p class="empty-note">Se încarcă...</p></div>
     </div>
     <div class="game-card">
+      <h3 class="game-title">Ne uităm la același cer 🌌</h3>
+      <div class="game-sub">// imagini live cu Pământul, de pe Stația Spațială Internațională</div>
+      <div class="sky-embed">
+        <iframe src="https://www.youtube.com/embed/live_stream?channel=UCLA_DiR1FfKNvjuUpBHmylQ" title="NASA Live — Pământul din spațiu" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      </div>
+      <p class="empty-note" style="text-align:center; margin-top:12px;">Deschideți amândoi pagina în același moment — vă uitați literalmente la aceeași imagine live, din spațiu 💜</p>
+    </div>
+    <div class="game-card">
+      <h3 class="game-title">Puzzle din noi 🧩</h3>
+      <div class="game-sub">// alege o poză, rezolvă-l, descoperă mesajul ascuns</div>
+      <div id="puzzleContent"><p class="empty-note">Se încarcă...</p></div>
+    </div>
+    <div class="game-card">
+      <h3 class="game-title">Tablă de desenat împreună ✏️</h3>
+      <div class="game-sub">// desenați amândoi, live, din locuri diferite</div>
+      <canvas id="drawCanvas" class="draw-canvas"></canvas>
+      <div class="draw-toolbar">
+        <input type="color" id="drawColor" value="#7C5CBF">
+        <label>grosime</label>
+        <input type="range" id="drawWidth" min="1" max="14" value="4">
+        <button id="drawClearBtn" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">🗑️ șterge tabla</button>
+      </div>
+    </div>
+    <div class="game-card">
       <h3 class="game-title">Perechile de dor 🧩</h3>
       <div class="game-sub">// găsește toate perechile</div>
       <div class="memory-grid" id="memoryGrid"></div>
@@ -1193,15 +1234,6 @@ function viewJocuri(){
         </div>
         <button class="spin-btn" id="spinBtn">Învârte roata</button>
         <div class="wheel-result" id="wheelResult"></div>
-      </div>
-    </div>
-    <div class="game-card">
-      <h3 class="game-title">Formular vamal de dragoste 🛂</h3>
-      <div class="game-sub">// completează sincer</div>
-      <div id="customsForm"></div>
-      <div class="approved" id="approvedStamp">
-        <h3>✔ APROBAT</h3>
-        <p>Intrare permanentă acordată în inima mea.<br>Valabilitate: pe viață.</p>
       </div>
     </div>
   </div>`;
@@ -1319,8 +1351,236 @@ async function initCountdown(){
   renderView();
 }
 
+async function initPuzzle(){
+  const contentDiv = document.getElementById('puzzleContent');
+  if(!contentDiv) return;
+
+  async function renderSetup(existing){
+    contentDiv.innerHTML = `
+      <form class="puzzle-setup-form" id="puzzleSetupForm">
+        <input type="file" id="puzzlePhotoInput" accept="image/*" ${existing && existing.photo ? '' : 'required'}>
+        <span class="empty-note">${existing && existing.photo ? 'Lasă gol ca să păstrezi poza actuală' : 'Alege o poză de-a voastră'}</span>
+        <div class="puzzle-size-row" id="puzzleSizeRow">
+          <button type="button" class="delete-btn" data-size="3" style="border:1.5px solid var(--lilac-line); border-radius:999px; padding:8px 16px; color:var(--ink); opacity:1;">Ușor (3×3)</button>
+          <button type="button" class="delete-btn" data-size="4" style="border:1.5px solid var(--lilac-line); border-radius:999px; padding:8px 16px; color:var(--ink); opacity:1;">Mediu (4×4)</button>
+          <button type="button" class="delete-btn" data-size="5" style="border:1.5px solid var(--lilac-line); border-radius:999px; padding:8px 16px; color:var(--ink); opacity:1;">Greu (5×5)</button>
+        </div>
+        <input type="text" id="puzzleMessageInput" placeholder="Mesajul ascuns sub piese" value="${existing ? (existing.message||'').replace(/"/g,'&quot;') : ''}" required>
+        <button type="submit" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none; align-self:flex-start;">Creează puzzle-ul</button>
+        <div class="upload-status" id="puzzleSetupStatus"></div>
+      </form>
+    `;
+    let selectedSize = existing ? existing.gridSize : 4;
+    const sizeRow = document.getElementById('puzzleSizeRow');
+    function markSelected(){
+      sizeRow.querySelectorAll('button').forEach(b=>{
+        const isSel = Number(b.dataset.size) === selectedSize;
+        b.style.background = isSel ? 'var(--accent)' : 'none';
+        b.style.color = isSel ? 'var(--paper)' : 'var(--ink)';
+      });
+    }
+    markSelected();
+    sizeRow.querySelectorAll('button').forEach(b=>{
+      b.addEventListener('click', ()=>{ selectedSize = Number(b.dataset.size); markSelected(); });
+    });
+
+    document.getElementById('puzzleSetupForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const fileInput = document.getElementById('puzzlePhotoInput');
+      const message = document.getElementById('puzzleMessageInput').value.trim();
+      const statusEl = document.getElementById('puzzleSetupStatus');
+      if(!message) return;
+      statusEl.textContent = 'Se salvează...';
+      try{
+        let photoUrl = existing ? existing.photo : '';
+        if(fileInput.files[0]){
+          photoUrl = await uploadPhotoToImgBB(fileInput.files[0]);
+        }
+        if(!photoUrl){ statusEl.textContent = 'Alege o poză.'; return; }
+        const config = { photo: photoUrl, gridSize: selectedSize, message };
+        await savePuzzle(config);
+        renderBoard(config);
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
+    });
+  }
+
+  function renderBoard(config){
+    const n = config.gridSize;
+    let order = Array.from({length:n*n}, (_,i)=>i);
+    do{
+      for(let i=order.length-1; i>0; i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+    } while(order.every((v,i)=>v===i));
+
+    contentDiv.innerHTML = `
+      <div class="puzzle-board" id="puzzleBoard" style="grid-template-columns:repeat(${n}, 1fr);"></div>
+      <div class="puzzle-actions">
+        <button class="hero-edit-btn" id="puzzleShuffleBtn" style="background:var(--accent); color:var(--paper); border:none;">🔀 amestecă din nou</button>
+        <button class="hero-edit-btn" id="puzzleChangeBtn" style="background:var(--paper-dark); color:var(--ink);">✏️ schimbă poza</button>
+      </div>
+      <div id="puzzleWin"></div>
+    `;
+
+    const board = document.getElementById('puzzleBoard');
+    let selectedEl = null;
+
+    function pieceStyle(pieceIndex){
+      const col = pieceIndex % n;
+      const row = Math.floor(pieceIndex / n);
+      const denom = n - 1 || 1;
+      return `background-image:url('${config.photo}'); background-size:${n*100}% ${n*100}%; background-position:${(col/denom)*100}% ${(row/denom)*100}%;`;
+    }
+
+    order.forEach(pieceIndex=>{
+      const cell = document.createElement('div');
+      cell.className = 'puzzle-piece';
+      cell.dataset.pieceIndex = pieceIndex;
+      cell.style.cssText = pieceStyle(pieceIndex);
+      cell.addEventListener('click', ()=>{
+        if(!selectedEl){
+          selectedEl = cell;
+          cell.classList.add('selected');
+          return;
+        }
+        if(selectedEl === cell){
+          cell.classList.remove('selected');
+          selectedEl = null;
+          return;
+        }
+        const tempIndex = selectedEl.dataset.pieceIndex;
+        const tempStyle = selectedEl.style.cssText;
+        selectedEl.dataset.pieceIndex = cell.dataset.pieceIndex;
+        selectedEl.style.cssText = cell.style.cssText;
+        cell.dataset.pieceIndex = tempIndex;
+        cell.style.cssText = tempStyle;
+        selectedEl.classList.remove('selected');
+        selectedEl = null;
+        checkWin();
+      });
+      board.appendChild(cell);
+    });
+
+    function checkWin(){
+      const pieces = Array.from(board.children);
+      const solved = pieces.every((cell, i)=> Number(cell.dataset.pieceIndex) === i);
+      if(solved){
+        document.getElementById('puzzleWin').innerHTML = `
+          <div class="puzzle-solved-message">💜 ${config.message}</div>
+        `;
+      }
+    }
+
+    document.getElementById('puzzleShuffleBtn').addEventListener('click', ()=> renderBoard(config));
+    document.getElementById('puzzleChangeBtn').addEventListener('click', ()=> renderSetup(config));
+  }
+
+  const existing = await loadPuzzle();
+  if(existing && existing.photo){
+    renderBoard(existing);
+  } else {
+    renderSetup(existing);
+  }
+}
+
+function initDrawing(){
+  const canvas = document.getElementById('drawCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const colorInput = document.getElementById('drawColor');
+  const widthInput = document.getElementById('drawWidth');
+  const clearBtn = document.getElementById('drawClearBtn');
+
+  let allStrokes = [];
+  let currentStroke = null;
+  let drawing = false;
+
+  function drawStroke(stroke){
+    if(!stroke.points || stroke.points.length < 1) return;
+    ctx.strokeStyle = stroke.color;
+    ctx.lineWidth = stroke.width;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    stroke.points.forEach((p, i)=>{
+      const x = p.x * canvas.width;
+      const y = p.y * canvas.height;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  }
+
+  function redrawAll(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    allStrokes.forEach(drawStroke);
+    if(currentStroke) drawStroke(currentStroke);
+  }
+
+  function resizeCanvas(){
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    redrawAll();
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  if(window._drawingUnsub){ window._drawingUnsub(); }
+  window._drawingUnsub = db.collection('site').doc('drawing').onSnapshot(doc=>{
+    allStrokes = doc.exists ? (doc.data().strokes || []) : [];
+    redrawAll();
+  });
+
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: (clientX-rect.left)/rect.width, y: (clientY-rect.top)/rect.height };
+  }
+  function startDraw(e){
+    e.preventDefault();
+    drawing = true;
+    currentStroke = { points:[getPos(e)], color: colorInput.value, width: Number(widthInput.value) };
+  }
+  function moveDraw(e){
+    if(!drawing) return;
+    e.preventDefault();
+    currentStroke.points.push(getPos(e));
+    redrawAll();
+  }
+  async function endDraw(){
+    if(!drawing) return;
+    drawing = false;
+    if(currentStroke && currentStroke.points.length > 1){
+      try{
+        await db.collection('site').doc('drawing').set({
+          strokes: firebase.firestore.FieldValue.arrayUnion(currentStroke)
+        }, { merge:true });
+      }catch(e){}
+    }
+    currentStroke = null;
+  }
+
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', moveDraw);
+  window.addEventListener('mouseup', endDraw);
+  canvas.addEventListener('touchstart', startDraw);
+  canvas.addEventListener('touchmove', moveDraw);
+  canvas.addEventListener('touchend', endDraw);
+
+  clearBtn.addEventListener('click', async ()=>{
+    if(!confirm('Sigur vreți să ștergeți tabla, pentru amândoi?')) return;
+    await db.collection('site').doc('drawing').set({ strokes: [] });
+  });
+}
+
 function initGames(){
   initCountdown();
+  initPuzzle();
+  initDrawing();
   const icons = ['✈️','💌','💜','⭐','🌍','🎵'];
   let cards = [...icons, ...icons];
   cards.sort(()=>Math.random()-0.5);
@@ -1396,30 +1656,6 @@ function initGames(){
     document.getElementById('wheelResult').textContent='';
     setTimeout(()=>{ document.getElementById('wheelResult').textContent='→ '+wheelOptions[winnerIndex]; }, 3600);
   });
-
-  const questions = [
-    { q:'Câte kilograme de dor declari la intrare?', opts:['0-5 kg','10 kg','Prea mult ca să încapă în bagaj'] },
-    { q:'Motivul vizitei?', opts:['Turism','Afaceri','Să stau cu tine pentru totdeauna'] },
-    { q:'Ai ceva de declarat?', opts:['Nimic','Câteva îmbrățișări restante','O inimă întreagă, doar pentru tine'] },
-    { q:'Durata șederii preconizate?', opts:['Un weekend','Cât ține concediul','Pe viață'] }
-  ];
-  const customsForm = document.getElementById('customsForm');
-  questions.forEach((item,qi)=>{
-    const div=document.createElement('div'); div.className='form-q';
-    div.innerHTML = `<p>${qi+1}. ${item.q}</p><div class="form-opts">${item.opts.map((o,oi)=>`<button data-q="${qi}" data-o="${oi}">${o}</button>`).join('')}</div>`;
-    customsForm.appendChild(div);
-  });
-  customsForm.addEventListener('click', e=>{
-    if(e.target.tagName==='BUTTON'){
-      const qi=e.target.dataset.q;
-      document.querySelectorAll(`button[data-q="${qi}"]`).forEach(b=>b.classList.remove('picked'));
-      e.target.classList.add('picked');
-    }
-  });
-  const submitBtn=document.createElement('button');
-  submitBtn.className='submit-btn'; submitBtn.textContent='Depune formularul';
-  customsForm.appendChild(submitBtn);
-  submitBtn.addEventListener('click', ()=>{ document.getElementById('approvedStamp').classList.add('show'); });
 }
 
 /* ============ LIGHTBOX ============ */
