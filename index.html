@@ -8,6 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Special+Elite&family=Poppins:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root{
     --paper:#F5F1FB;
@@ -208,7 +210,7 @@
       repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, transparent 3px, transparent 6px);
     pointer-events:none;
   }
-.pixel-hearts{
+  .pixel-hearts{
     font-family:'Press Start 2P', monospace;
     font-size:2.4rem;
     letter-spacing:14px;
@@ -225,7 +227,7 @@
     margin-bottom:28px;
     line-height:1.6;
   }
- .pixel-flower{
+  .pixel-flower{
     display:inline-block; vertical-align:middle; font-size:0.75em;
     position:relative; top:-0.05em;
   }
@@ -357,6 +359,32 @@
   .game-card{background:var(--paper); border:1px solid var(--lilac-line); box-shadow:0 12px 26px var(--cream-shadow); border-radius:6px; padding:28px;}
   .game-title{font-size:1.35rem; color:var(--ink); margin-bottom:4px;}
   .game-sub{font-family:'Special Elite', monospace; font-size:0.78rem; color:var(--accent); margin-bottom:18px;}
+
+  .countdown-numbers{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:10px 0 22px;}
+  .countdown-unit{
+    display:flex; flex-direction:column; align-items:center;
+    background:var(--paper-dark); border-radius:8px; padding:12px 16px; min-width:64px;
+  }
+  .countdown-unit span{ font-family:'Special Elite', monospace; font-size:1.6rem; color:var(--accent-deep); }
+  .countdown-unit label{ font-size:0.68rem; color:var(--ink); opacity:0.7; margin-top:2px; text-transform:uppercase; letter-spacing:1px; }
+
+  .flight-route{ display:flex; align-items:center; gap:10px; margin:6px 0 14px; }
+  .flight-city{ font-family:'Special Elite', monospace; font-size:0.7rem; color:var(--accent-deep); white-space:nowrap; }
+  .flight-track{
+    position:relative; flex:1; height:2px;
+    background-image:repeating-linear-gradient(90deg, var(--lilac-line) 0 6px, transparent 6px 12px);
+  }
+  .flight-progress{ position:absolute; left:0; top:0; height:2px; background:var(--accent); width:0%; transition:width 1s linear; }
+  .flight-plane{ position:absolute; top:-11px; left:0%; transform:translateX(-50%); font-size:1.15rem; transition:left 1s linear; }
+
+  .distance-note{ text-align:center; font-family:'Special Elite', monospace; font-size:0.78rem; color:var(--accent); margin-bottom:14px; }
+  .countdown-map{ height:220px; border-radius:8px; overflow:hidden; border:1px solid var(--lilac-line); }
+  .countdown-edit-form{ display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+  .countdown-edit-form label{ font-size:0.8rem; color:var(--ink); }
+  .countdown-edit-form input[type="date"]{
+    font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px;
+    padding:8px; font-size:0.9rem; background:var(--paper-dark);
+  }
 
   .memory-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; max-width:420px; margin:0 auto;}
   .mem-card{aspect-ratio:1; perspective:600px; cursor:pointer;}
@@ -529,6 +557,27 @@ async function loadHero(){
 async function saveHero(data){
   await db.collection('site').doc('hero').set(data, { merge: true });
 }
+
+/* ============ NUMĂRĂTOARE + HARTĂ (Firestore) ============ */
+const CLUJ_COORDS = { lat:46.7712, lng:23.6236 };
+const NY_COORDS = { lat:40.7128, lng:-74.0060 };
+const DEFAULT_COUNTDOWN = { startDate:'2026-01-01', reunionDate:'2026-12-31' };
+
+function haversineDistance(a, b){
+  const R = 6371;
+  const dLat = (b.lat - a.lat) * Math.PI/180;
+  const dLng = (b.lng - a.lng) * Math.PI/180;
+  const lat1 = a.lat * Math.PI/180, lat2 = b.lat * Math.PI/180;
+  const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
+  return Math.round(2 * R * Math.asin(Math.sqrt(h)));
+}
+async function loadCountdown(){
+  const doc = await db.collection('site').doc('countdown').get();
+  return doc.exists ? doc.data() : null;
+}
+async function saveCountdown(data){
+  await db.collection('site').doc('countdown').set(data, { merge: true });
+}
 /* ============ POZE (ImgBB + Firestore) ============ */
 async function uploadPhotoToImgBB(file){
   const formData = new FormData();
@@ -604,7 +653,7 @@ async function router(){
     renderNav('amintiri');
     view.innerHTML = viewAnDetail(parts[1]);
     applyFirstPhotoThumbnails(view);
-} else if(parts[0] === 'amintiri'){
+  } else if(parts[0] === 'amintiri'){
     renderNav('amintiri');
     view.innerHTML = viewAniList();
     applyFirstPhotoThumbnails(view);
@@ -704,7 +753,7 @@ function initAcasaGate(){
   const noMessages = [
     'heeei, ce faci?!?!?!?!',
     'degeaba incerci ;)))',
-    'iibituleeee, nu e voie, caca'
+    'iubituleeee, nu e voie, caca'
   ];
   noBtn.addEventListener('mouseenter', ()=>{
     dodgeCount++;
@@ -835,6 +884,7 @@ async function initHomeContent(){
   // Joculețele (aceleași funcții ca la pagina dedicată)
   initGames();
 }
+
 function viewAniList(){
   return `
   <h2 class="section-title">Amintirile noastre</h2>
@@ -1123,6 +1173,11 @@ function viewJocuri(){
   <p class="section-sub">// trei jocuri mici, pentru pauzele de dor</p>
   <div class="games-grid">
     <div class="game-card">
+      <h3 class="game-title">Numărătoare până ne revedem ✈️</h3>
+      <div class="game-sub">// zile, ore, minute, secunde — și distanța dintre noi</div>
+      <div id="countdownContent"><p class="empty-note">Se încarcă...</p></div>
+    </div>
+    <div class="game-card">
       <h3 class="game-title">Perechile de dor 🧩</h3>
       <div class="game-sub">// găsește toate perechile</div>
       <div class="memory-grid" id="memoryGrid"></div>
@@ -1152,7 +1207,120 @@ function viewJocuri(){
   </div>`;
 }
 
+async function initCountdown(){
+  const contentDiv = document.getElementById('countdownContent');
+  if(!contentDiv) return;
+
+  if(window._countdownInterval){ clearInterval(window._countdownInterval); }
+
+  async function renderView(){
+    const stored = await loadCountdown();
+    const cd = { ...DEFAULT_COUNTDOWN, ...(stored || {}) };
+
+    contentDiv.innerHTML = `
+      <div class="countdown-numbers">
+        <div class="countdown-unit"><span id="cdDays">--</span><label>zile</label></div>
+        <div class="countdown-unit"><span id="cdHours">--</span><label>ore</label></div>
+        <div class="countdown-unit"><span id="cdMinutes">--</span><label>min</label></div>
+        <div class="countdown-unit"><span id="cdSeconds">--</span><label>sec</label></div>
+      </div>
+      <div class="flight-route">
+        <span class="flight-city">Cluj-Napoca</span>
+        <div class="flight-track">
+          <div class="flight-progress" id="flightProgress"></div>
+          <div class="flight-plane" id="flightPlane">✈️</div>
+        </div>
+        <span class="flight-city">New York</span>
+      </div>
+      <div class="distance-note" id="distanceNote"></div>
+      <div class="countdown-map" id="countdownMap"></div>
+      <button class="hero-edit-btn" id="editCountdownBtn" style="background:var(--accent); color:var(--paper); border:none; margin-top:14px;">✏️ editează datele</button>
+    `;
+
+    const distance = haversineDistance(CLUJ_COORDS, NY_COORDS);
+    document.getElementById('distanceNote').textContent = `📏 ${distance.toLocaleString('ro-RO')} km distanță în linie dreaptă`;
+
+    function updateNumbers(){
+      const now = new Date();
+      const target = new Date(cd.reunionDate);
+      let diff = target - now;
+      if(diff < 0) diff = 0;
+      const days = Math.floor(diff/(1000*60*60*24));
+      const hours = Math.floor((diff/(1000*60*60))%24);
+      const minutes = Math.floor((diff/(1000*60))%60);
+      const seconds = Math.floor((diff/1000)%60);
+      const dEl = document.getElementById('cdDays');
+      if(!dEl) return;
+      dEl.textContent = days;
+      document.getElementById('cdHours').textContent = String(hours).padStart(2,'0');
+      document.getElementById('cdMinutes').textContent = String(minutes).padStart(2,'0');
+      document.getElementById('cdSeconds').textContent = String(seconds).padStart(2,'0');
+
+      const start = new Date(cd.startDate).getTime();
+      const end = new Date(cd.reunionDate).getTime();
+      let progress = end > start ? (now.getTime() - start) / (end - start) : 0;
+      progress = Math.max(0, Math.min(1, progress));
+      const progressEl = document.getElementById('flightProgress');
+      const planeEl = document.getElementById('flightPlane');
+      if(progressEl) progressEl.style.width = (progress*100)+'%';
+      if(planeEl) planeEl.style.left = (progress*100)+'%';
+    }
+    updateNumbers();
+    window._countdownInterval = setInterval(updateNumbers, 1000);
+
+    const mapEl = document.getElementById('countdownMap');
+    const map = L.map(mapEl, { scrollWheelZoom:false }).setView([44, -20], 3);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    L.marker([CLUJ_COORDS.lat, CLUJ_COORDS.lng]).addTo(map).bindPopup('Cluj-Napoca 💜');
+    L.marker([NY_COORDS.lat, NY_COORDS.lng]).addTo(map).bindPopup('New York ✈️');
+    L.polyline(
+      [[CLUJ_COORDS.lat, CLUJ_COORDS.lng],[NY_COORDS.lat, NY_COORDS.lng]],
+      { color:'#7C5CBF', dashArray:'6,8', weight:2 }
+    ).addTo(map);
+    setTimeout(()=> map.invalidateSize(), 200);
+
+    document.getElementById('editCountdownBtn').addEventListener('click', ()=> renderEdit(cd));
+  }
+
+  function renderEdit(cd){
+    if(window._countdownInterval){ clearInterval(window._countdownInterval); }
+    contentDiv.innerHTML = `
+      <form class="countdown-edit-form" id="countdownEditForm">
+        <label>De când numărăm (ex: ziua plecării)</label>
+        <input type="date" id="cdStartInput" value="${cd.startDate}">
+        <label>Data revederii</label>
+        <input type="date" id="cdEndInput" value="${cd.reunionDate}">
+        <div style="display:flex; gap:10px; margin-top:6px;">
+          <button type="submit" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none;">Salvează</button>
+          <button type="button" id="cancelCountdownEdit" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">Renunță</button>
+        </div>
+        <div class="upload-status" id="countdownEditStatus"></div>
+      </form>
+    `;
+    document.getElementById('cancelCountdownEdit').addEventListener('click', renderView);
+    document.getElementById('countdownEditForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const startDate = document.getElementById('cdStartInput').value;
+      const reunionDate = document.getElementById('cdEndInput').value;
+      const statusEl = document.getElementById('countdownEditStatus');
+      if(!startDate || !reunionDate) return;
+      statusEl.textContent = 'Se salvează...';
+      try{
+        await saveCountdown({ startDate, reunionDate });
+        renderView();
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
+    });
+  }
+
+  renderView();
+}
+
 function initGames(){
+  initCountdown();
   const icons = ['✈️','💌','💜','⭐','🌍','🎵'];
   let cards = [...icons, ...icons];
   cards.sort(()=>Math.random()-0.5);
