@@ -1889,6 +1889,39 @@ async function initCapsule(){
 
   render();
 }
+  function renderEditForm(capsule){
+    contentDiv.innerHTML = `
+      <form class="puzzle-setup-form" id="capsuleEditForm">
+        <textarea id="capsuleEditMessage" rows="4" required
+          style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:10px; font-size:0.9rem; background:var(--paper-dark);">${capsule.message}</textarea>
+        <input type="date" id="capsuleEditDate" value="${capsule.unlockDate}" required
+          style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:8px; background:var(--paper-dark);">
+        <div style="display:flex; gap:10px;">
+          <button type="submit" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none;">Salvează</button>
+          <button type="button" id="capsuleEditCancel" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">Renunță</button>
+        </div>
+        <div class="upload-status" id="capsuleEditStatus"></div>
+      </form>
+    `;
+    document.getElementById('capsuleEditCancel').addEventListener('click', render);
+    document.getElementById('capsuleEditForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const message = document.getElementById('capsuleEditMessage').value.trim();
+      const unlockDate = document.getElementById('capsuleEditDate').value;
+      const statusEl = document.getElementById('capsuleEditStatus');
+      if(!message || !unlockDate) return;
+      statusEl.textContent = 'Se salvează...';
+      try{
+        await editCapsuleFn(capsule.id, message, unlockDate);
+        render();
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
+    });
+  }
+
+  render();
+}
 
   function renderEditForm(capsule){
     contentDiv.innerHTML = `
