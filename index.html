@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pentru Ștefan — Vederi de acasă</title>
+<title>pentru stefan</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Special+Elite&family=Poppins:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -645,9 +645,9 @@ async function updatePoem(id, updates){
 
 /* ============ HERO (Firestore) ============ */
 const DEFAULT_HERO = {
-  eyebrow: '4 luni împreună · mii de kilometri între noi',
-  title: 'Patru luni de dor, purtat cu drag',
-  text: 'Ștefan, azi facem 4 luni de când ești plecat, și tot atâtea luni în care distanța n-a reușit să ne schimbe nimic din ce simțim. Mi-e dor de tine în fiecare zi, dar sunt mândră de tine și de tot ce faci acolo. Derulează mai jos — ți-am strâns aici toate lunile noastre, poeziile scrise pentru tine, și câteva joculețe pentru serile în care ne e greu de la distanță.',
+  eyebrow: '4 luni împreună iubituleeeeeeee',
+  title: 'te iubesc',
+  text: 'te iubesc',
   photo: ''
 };
 async function loadHero(){
@@ -998,7 +998,7 @@ function viewAcasa(){
         <button class="pixel-btn" id="pixelYes">DA</button>
         <button class="pixel-btn" id="pixelNo">NU</button>
       </div>
-      <div class="pixel-gate-sub">// apasă DA ca să intri</div>
+      <div class="pixel-gate-sub">// ce aleeeeegi?</div>
     </div>
   </div>
   <div id="acasaContent" style="display:none;">
@@ -1011,14 +1011,14 @@ function viewAcasa(){
     </section>
 
     <section class="home-section">
-      <h2 class="section-title">Amintirile noastre</h2>
-      <p class="section-sub">// derulează și alege o lună</p>
+      <h2 class="section-title">cateva poze dragute si ish organizate asa cum iti place tie</h2>
+      <p class="section-sub">// adauga si tu ce pozici doresti</p>
       <div class="months-scroll" id="homeMonthsScroll"></div>
     </section>
 
     <section class="home-section">
-      <h2 class="section-title">Poezii pentru tine</h2>
-      <p class="section-sub">// alunecă printre ele</p>
+      <h2 class="section-title">am incarcat si cateva poezioare pe care l-am scris pt tn, poti incarca si tu cand doresti</h2>
+      <p class="section-sub">// restul raman inca in carticica</p>
       <div class="poem-carousel">
         <button class="carousel-btn" id="carouselPrev">‹</button>
         <div class="carousel-track" id="carouselTrack"></div>
@@ -1027,8 +1027,8 @@ function viewAcasa(){
     </section>
 
     <section class="home-section">
-      <h2 class="section-title">Joculețe de îndrăgostiți</h2>
-      <p class="section-sub">// alege o activitate</p>
+      <h2 class="section-title">cateva jocuri micute si dragute</h2>
+      <p class="section-sub">// pentru ștefănel si dănicu</p>
       <div class="months-scroll" id="homeGamesScroll"></div>
     </section>
 
@@ -1187,8 +1187,8 @@ async function initHomeContent(){
 
 function viewAniList(){
   return `
-  <h2 class="section-title">Amintirile noastre</h2>
-  <p class="section-sub">// alege un an ca să vezi lunile lui</p>
+  <h2 class="section-title">hai sa salvam aici multe amintiri, multa iubire si multi pupici</h2>
+  <p class="section-sub">// timp avem</p>
   <div class="card-grid">
     ${albumYears.map(y=>`
       <a class="card" href="#/amintiri/${y.id}" data-monthid="${y.id}-luna-1">
@@ -1206,13 +1206,13 @@ function viewAnDetail(yearId){
   return `
   <a class="back-link" href="#/amintiri">← înapoi la Ani</a>
   <h2 class="section-title">${y.label}</h2>
-  <p class="section-sub">// alege o lună ca să vezi pozele și poveștile ei</p>
+  <p class="section-sub">hai sa vedem cateva amintiri cu noi</p>
   <div class="card-grid">
     ${months.map(m=>`
       <a class="card" href="#/amintiri/${yearId}/${m.id}" data-monthid="${m.id}">
         <div class="photo-slot"><span class="icon">📷</span></div>
         <div class="card-label">${m.label} — ${m.sub}</div>
-        <div class="card-caption">Dă click și răscolești prin amintirile noastre</div>
+        <div class="card-caption">un click ne intoarcem in timp</div>
       </a>`).join('')}
   </div>`;
 }
@@ -1223,7 +1223,7 @@ function viewLunaDetail(yearId, id){
   return `
   <a class="back-link" href="#/amintiri/${yearId}">← înapoi la ${albumYears.find(y=>y.id===yearId)?.label || 'An'}</a>
   <h2 class="section-title">${m.label} — ${m.sub}</h2>
-  <p class="section-sub">// galeria acestei luni</p>
+  <p class="section-sub">pozicile din aceasta luna</p>
 
   <div class="photo-gallery" id="dynamicGallery"><p class="empty-note">Se încarcă...</p></div>
 
@@ -1237,11 +1237,11 @@ function viewLunaDetail(yearId, id){
 
 function viewPoezii(){
   return `
-  <h2 class="section-title">Poezii pentru tine</h2>
-  <p class="section-sub">// alege una ca s-o citești</p>
+  <h2 class="section-title">pam pam, poezioareleeeeeee</h2>
+  <p class="section-sub">// sa citim si sa simtim</p>
   <div class="card-grid" id="poemsList"><p class="empty-note">Se încarcă...</p></div>
 
-  <h3 style="font-size:1.15rem; color:var(--accent-deep); margin:32px 0 14px;">Adaugă o poezie nouă</h3>
+  <h3 style="font-size:1.15rem; color:var(--accent-deep); margin:32px 0 14px;">hai cu o noua poezie</h3>
   <form class="upload-photo-form" id="addPoemForm">
     <input type="text" id="poemTitleInput" placeholder="Titlul poeziei" required style="flex:1 1 100%;">
     <textarea id="poemTextInput" rows="6" placeholder="Scrie versurile aici..." required
@@ -1468,26 +1468,26 @@ async function initComments(poemId){
 }
 
 const gamesList = [
-  { id:'countdown', icon:'✈️', title:'Numărătoare până ne revedem', desc:'zile, ore, minute — și distanța dintre noi' },
-  { id:'moon', icon:'🌙', title:'Aceeași lună, oriunde am fi', desc:'exact aceeași lună, chiar acum' },
-  { id:'puzzle', icon:'🧩', title:'Puzzle din noi', desc:'alege o poză, rezolvă-l, descoperă mesajul ascuns' },
+  { id:'countdown', icon:'✈️', title:'cat mai e pana ne vedem?', desc:'intra si vei vedea' },
+  { id:'moon', icon:'🌙', title:'luna si noi', desc:'o privim amandoi' },
+  { id:'puzzle', icon:'🧩', title:'un mic puzzle dragut', desc:'daca ne plictisim' },
   { id:'drawing', icon:'✏️', title:'Tablă de desenat împreună', desc:'desenați amândoi, live, din locuri diferite' },
   { id:'memory', icon:'🧠', title:'Perechile de dor', desc:'joc de memorie cu poze de-ale voastre' },
-  { id:'wheel', icon:'🎡', title:'Roata dorurilor', desc:'scrie-ți propriile idei, apoi învârte' },
-  { id:'capsule', icon:'🕰️', title:'Capsula de timp', desc:'o scrisoare sigilată până la o dată aleasă' },
-  { id:'envelopes', icon:'🧧', title:'Plicuri surpriză', desc:'deschideți câte un plic, pe rând' },
-  { id:'streak', icon:'🔥', title:'Streak-ul nostru', desc:'câte zile la rând am trecut pe-aici' },
-  { id:'map', icon:'🗺️', title:'Harta locurilor de vizitat', desc:'locuri pe care vrem să le vedem împreună' },
-  { id:'question', icon:'❓', title:'Întrebarea zilei', desc:'o întrebare nouă, în fiecare zi' },
-  { id:'mood', icon:'😊', title:'Cum mă simt azi', desc:'starea fiecăruia, dintr-o privire' },
-  { id:'journal', icon:'📖', title:'Jurnalul nostru', desc:'ce am făcut, zi de zi, doar al nostru' },
-  { id:'gallery', icon:'🎨', title:'Galeria desenelor', desc:'toate desenele salvate, la un loc' }
+  { id:'wheel', icon:'🎡', title:'roata alegerilor', desc:'pentru atunci cand raspunsul e "NU STIU"' },
+  { id:'capsule', icon:'🕰️', title:'calatorim putin in timp', desc:'o scrisorica pt viitor' },
+  { id:'envelopes', icon:'🧧', title:'plicuri surprizaaaa', desc:'cu mesaje surprizaaaa' },
+  { id:'streak', icon:'🔥', title:'foculete ', desc:'sa mentinem flacara' },
+  { id:'map', icon:'🗺️', title:'punem pe harta unde vrem sa mergem', desc:'ca sa o umplem de pinuuuuri' },
+  { id:'question', icon:'❓', title:'intrebarea zilei', desc:'un pic cringiuță, dar asa sunt si eu' },
+  { id:'mood', icon:'😊', title:'cum esti azi?', desc:'mai luam pulsul de la distanta' },
+  { id:'journal', icon:'📖', title:'un mic jurnal ', desc:'in care sa mai scrie fiecare ce vrem' },
+  { id:'gallery', icon:'🎨', title:'aici se salveaza tot ce desenam', desc:'ca tot iti place sa desenezi' }
 ];
 
 function viewJocuriMenu(){
   return `
-  <h2 class="section-title">Joculețe de îndrăgostiți</h2>
-  <p class="section-sub">// alege o activitate</p>
+  <h2 class="section-title">hai sa ne jucaaaam</h2>
+  <p class="section-sub">// alege din ce gasesti mai jos, mai inventam joculete pe parcurs</p>
   <div class="card-grid">
     ${gamesList.map(g=>`
       <a class="card" href="#/jocuri/${g.id}">
