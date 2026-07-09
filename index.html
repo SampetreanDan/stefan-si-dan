@@ -535,7 +535,7 @@
 
 <nav id="mainNav"></nav>
 <main id="app"></main>
-<footer>— făcut cu drag, pentru drumul spre casă —</footer>
+<footer>— din toata inima pentru stefan —</footer>
 
 <button class="music-toggle" id="musicToggle" title="Muzică de fundal">🎵</button>
 <!--
@@ -1471,17 +1471,17 @@ const gamesList = [
   { id:'countdown', icon:'✈️', title:'cat mai e pana ne vedem?', desc:'intra si vei vedea' },
   { id:'moon', icon:'🌙', title:'luna si noi', desc:'o privim amandoi' },
   { id:'puzzle', icon:'🧩', title:'un mic puzzle dragut', desc:'daca ne plictisim' },
-  { id:'drawing', icon:'✏️', title:'Tablă de desenat împreună', desc:'desenați amândoi, live, din locuri diferite' },
-  { id:'memory', icon:'🧠', title:'Perechile de dor', desc:'joc de memorie cu poze de-ale voastre' },
+  { id:'drawing', icon:'✏️', title:'desenam impreunaaaaa', desc:'ca tot iti place sa desenezi' },
+  { id:'memory', icon:'🧠', title:'suflete pereche', desc:'joculet cute' },
   { id:'wheel', icon:'🎡', title:'roata alegerilor', desc:'pentru atunci cand raspunsul e "NU STIU"' },
   { id:'capsule', icon:'🕰️', title:'calatorim putin in timp', desc:'o scrisorica pt viitor' },
   { id:'envelopes', icon:'🧧', title:'plicuri surprizaaaa', desc:'cu mesaje surprizaaaa' },
   { id:'streak', icon:'🔥', title:'foculete ', desc:'sa mentinem flacara' },
   { id:'map', icon:'🗺️', title:'punem pe harta unde vrem sa mergem', desc:'ca sa o umplem de pinuuuuri' },
-  { id:'question', icon:'❓', title:'intrebarea zilei', desc:'un pic cringiuță, dar asa sunt si eu' },
+  { id:'question', icon:'❓', title:'intrebarea zilei', desc:'un pic cringiuță, dar asa sunt si eu, hihi :)))))' },
   { id:'mood', icon:'😊', title:'cum esti azi?', desc:'mai luam pulsul de la distanta' },
-  { id:'journal', icon:'📖', title:'un mic jurnal ', desc:'in care sa mai scrie fiecare ce vrem' },
-  { id:'gallery', icon:'🎨', title:'aici se salveaza tot ce desenam', desc:'ca tot iti place sa desenezi' }
+  { id:'journal', icon:'📖', title:'un mic jurnal ', desc:'in care sa mai scriem fiecare ce vrem' },
+  { id:'gallery', icon:'🎨', title:'aici se salveaza tot ce desenam', desc:'sa nu le pierdem' }
 ];
 
 function viewJocuriMenu(){
@@ -1508,7 +1508,7 @@ const GAME_BODIES = {
         <div class="moon-illumination" id="moonIllumination">—</div>
       </div>
     </div>
-    <p class="empty-note" style="text-align:center; margin-top:8px;">Indiferent unde suntem, ne uităm la aceeași lună, în aceeași noapte 💜</p>`,
+    <p class="empty-note" style="text-align:center; margin-top:8px;">indiferent unde suntem, putem sa privim luna amandoi, si ea sa ne priveasca inapoi</p>`,
   puzzle: `<div id="puzzleContent"><p class="empty-note">Se încarcă...</p></div>`,
   drawing: `
     <canvas id="drawCanvas" class="draw-canvas"></canvas>
@@ -1706,7 +1706,7 @@ async function initStreakPage(){
       <div class="streak-number">🔥 ${current}</div>
       <div class="streak-label">zile la rând<br>cel mai lung: ${longest} zile</div>
     </div>
-    <p class="empty-note" style="text-align:center; margin-top:10px;">Se actualizează automat de fiecare dată când vreunul din voi trece pe site</p>
+    <p class="empty-note" style="text-align:center; margin-top:10px;">se actualizează automat de fiecare dată când vreunul din noi intra pe site</p>
   `;
 }
 async function trackVisitStreak(){
@@ -1733,7 +1733,7 @@ async function initTravelMap(){
   const contentDiv = document.getElementById('travelMapContent');
   if(!contentDiv) return;
   contentDiv.innerHTML = `
-    <p class="empty-note" style="margin-bottom:10px;">Dă click pe hartă ca să adaugi un loc</p>
+    <p class="empty-note" style="margin-bottom:10px;">da click pe hartă ca să adaugi un loc si o mica descriere</p>
     <div class="countdown-map" id="travelMap"></div>
     <div id="travelSpotsList" style="margin-top:14px;"></div>
   `;
@@ -1871,11 +1871,11 @@ async function initMood(){
   }
 
   async function render(){
-    const danHTML = await renderPerson('dan', 'Dan');
-    const stefanHTML = await renderPerson('stefan', 'Ștefan');
+    const danHTML = await renderPerson('dan', 'dan');
+    const stefanHTML = await renderPerson('stefan', 'stefan');
     contentDiv.innerHTML = `
       <div class="mood-row">${danHTML}${stefanHTML}</div>
-      <p class="empty-note" style="text-align:center; margin-top:14px;">Cine ești?</p>
+      <p class="empty-note" style="text-align:center; margin-top:14px;">cine esti?</p>
       <div class="mood-select-row" id="whoAmI">
         <button data-who="dan" class="delete-btn" style="opacity:1; border:1.5px solid var(--lilac-line); border-radius:999px; padding:6px 14px;">Dan</button>
         <button data-who="stefan" class="delete-btn" style="opacity:1; border:1.5px solid var(--lilac-line); border-radius:999px; padding:6px 14px;">Ștefan</button>
