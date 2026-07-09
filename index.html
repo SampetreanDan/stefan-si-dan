@@ -378,7 +378,7 @@
   .flight-plane{ position:absolute; top:-11px; left:0%; transform:translateX(-50%); font-size:1.15rem; transition:left 1s linear; }
 
   .distance-note{ text-align:center; font-family:'Special Elite', monospace; font-size:0.78rem; color:var(--accent); margin-bottom:14px; }
-  .countdown-map{ height:220px; border-radius:8px; overflow:hidden; border:1px solid var(--lilac-line); }
+  .countdown-map{ height:60vh; min-height:340px; border-radius:8px; overflow:hidden; border:1px solid var(--lilac-line); }
   .countdown-edit-form{ display:flex; flex-direction:column; gap:10px; margin-top:14px; }
   .countdown-edit-form label{ font-size:0.8rem; color:var(--ink); }
   .countdown-edit-form input[type="date"]{
@@ -470,6 +470,22 @@
   .mood-select-row{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
   .mood-select-row button{ font-size:1.3rem; background:var(--paper-dark); border:1px solid var(--lilac-line); border-radius:8px; padding:6px 10px; cursor:pointer; }
 
+  .mood-history-strip{ display:flex; gap:6px; justify-content:center; margin-top:8px; }
+  .mood-history-item{ font-size:1.05rem; opacity:0.75; cursor:default; }
+  .mood-nudge{
+    margin-top:8px; font-size:0.78rem; font-style:italic; color:var(--accent-deep);
+    background:var(--paper-dark); border-radius:6px; padding:8px 12px;
+  }
+  .mood-note{ font-size:0.75rem; color:var(--ink); opacity:0.75; font-style:italic; margin-top:2px; max-width:140px; }
+  .mood-emoji-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-top:12px; }
+  .mood-emoji-option{
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    background:var(--paper-dark); border:1px solid var(--lilac-line); border-radius:8px;
+    padding:10px 4px; cursor:pointer; font-size:1.4rem;
+  }
+  .mood-emoji-option span.lbl{ font-size:0.6rem; color:var(--ink); opacity:0.75; }
+  .mood-emoji-option:hover{ background:var(--accent); }
+
   .question-box{
     text-align:center; font-family:'Playfair Display', serif; font-style:italic; font-size:1.1rem;
     color:var(--accent-deep); padding:14px 4px 18px;
@@ -545,6 +561,14 @@ const firebaseConfig = {
   appId: "1:300467677659:web:d7c44fda55f1606029dffe"
 };
 firebase.initializeApp(firebaseConfig);
+
+/* Repară warningurile de iconițe lipsă ale Leaflet (hărțile) */
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
 const db = firebase.firestore();
 const IMGBB_KEY = "8eee43d5919b01ec061e0a6d5ae04fd4";
 
@@ -687,6 +711,9 @@ async function loadCapsule(){
 async function saveCapsule(data){
   await db.collection('site').doc('capsule').set(data);
 }
+async function deleteCapsule(){
+  await db.collection('site').doc('capsule').delete();
+}
 
 /* ============ PLICURI SURPRIZĂ ============ */
 async function loadEnvelopes(){
@@ -700,6 +727,9 @@ async function addEnvelope(text){
 }
 async function openEnvelope(id){
   await db.collection('envelopes').doc(id).update({ opened:true });
+}
+async function editEnvelope(id, text){
+  await db.collection('envelopes').doc(id).update({ text });
 }
 async function deleteEnvelope(id){
   await db.collection('envelopes').doc(id).delete();
@@ -724,6 +754,9 @@ async function addTravelSpot(spot){
 }
 async function deleteTravelSpot(id){
   await db.collection('travelSpots').doc(id).delete();
+}
+async function editTravelSpot(id, name, note){
+  await db.collection('travelSpots').doc(id).update({ name, note });
 }
 
 /* ============ ÎNTREBAREA ZILEI ============ */
@@ -763,16 +796,36 @@ async function loadTodayAnswers(dateKey){
 async function saveTodayAnswer(dateKey, question, name, text){
   await db.collection('dailyAnswers').add({ dateKey, question, name, text, timestamp: Date.now() });
 }
+async function deleteTodayAnswer(id){
+  await db.collection('dailyAnswers').doc(id).delete();
+}
+async function editTodayAnswer(id, text){
+  await db.collection('dailyAnswers').doc(id).update({ text });
+}
 
 /* ============ CUM MĂ SIMT AZI ============ */
 async function loadMood(){
   const doc = await db.collection('site').doc('mood').get();
   return doc.exists ? doc.data() : null;
 }
-async function saveMoodFor(person, emoji){
+async function saveMoodFor(person, emoji, note){
   await db.collection('site').doc('mood').set({
-    [person]: { emoji, updatedAt: Date.now() }
+    [person]: { emoji, note: note || '', updatedAt: Date.now() }
   }, { merge:true });
+  await db.collection('moodHistory').add({ person, emoji, note: note || '', timestamp: Date.now() });
+}
+async function loadMoodHistory(person, limitCount){
+  const snapshot = await db.collection('moodHistory').where('person','==',person).get();
+  const list = snapshot.docs.map(d=>d.data());
+  list.sort((a,b)=>b.timestamp - a.timestamp);
+  return list.slice(0, limitCount || 7);
+}
+async function resetMood(){
+  await db.collection('site').doc('mood').delete();
+  const snapshot = await db.collection('moodHistory').get();
+  const batch = db.batch();
+  snapshot.docs.forEach(doc => batch.delete(doc.ref));
+  await batch.commit();
 }
 
 /* ============ JURNALUL NOSTRU ============ */
@@ -787,6 +840,9 @@ async function addJournalEntry(author, text){
 }
 async function deleteJournalEntry(id){
   await db.collection('journal').doc(id).delete();
+}
+async function editJournalEntry(id, text){
+  await db.collection('journal').doc(id).update({ text });
 }
 
 /* ============ GALERIA DESENELOR ============ */
@@ -1481,9 +1537,11 @@ const GAME_BODIES = {
 function viewGameDetail(gameId){
   const game = gamesList.find(g=>g.id===gameId);
   if(!game) return '<p>Jocul nu a fost găsit.</p>';
+  const wideGames = ['countdown', 'map'];
+  const wrapStyle = wideGames.includes(gameId) ? '' : 'max-width:640px; margin:0 auto;';
   return `
   <a class="back-link" href="#/jocuri">← înapoi la Joculețe</a>
-  <div class="games-grid" style="max-width:640px; margin:0 auto;">
+  <div class="games-grid" style="${wrapStyle}">
     <div class="game-card">
       <h3 class="game-title">${game.icon} ${game.title}</h3>
       <div class="game-sub">// ${game.desc}</div>
@@ -1511,27 +1569,49 @@ async function initCapsule(){
           <div class="capsule-icon">🔒</div>
           <p>O scrisoare așteaptă, sigilată.</p>
           <div class="capsule-date">Se deschide pe ${unlock.toLocaleDateString('ro-RO')} — ${diffDays} zile rămase</div>
+        </div>
+        <div class="puzzle-actions">
+          <button class="hero-edit-btn" id="capsuleEditBtn" style="background:var(--paper-dark); color:var(--ink);">✏️ editează</button>
+          <button class="hero-edit-btn" id="capsuleDeleteBtn" style="background:var(--paper-dark); color:var(--ink);">🗑️ șterge</button>
         </div>`;
+      document.getElementById('capsuleEditBtn').addEventListener('click', ()=> renderSetup(capsule));
+      document.getElementById('capsuleDeleteBtn').addEventListener('click', async ()=>{
+        if(!confirm('Sigur vrei să ștergi capsula?')) return;
+        await deleteCapsule();
+        renderView();
+      });
     } else {
       contentDiv.innerHTML = `
         <div class="capsule-open">🔓 ${capsule.message}</div>
         <div class="puzzle-actions">
           <button class="hero-edit-btn" id="capsuleResetBtn" style="background:var(--paper-dark); color:var(--ink);">✏️ scrie o capsulă nouă</button>
+          <button class="hero-edit-btn" id="capsuleDeleteBtn" style="background:var(--paper-dark); color:var(--ink);">🗑️ șterge</button>
         </div>`;
-      document.getElementById('capsuleResetBtn').addEventListener('click', renderSetup);
+      document.getElementById('capsuleResetBtn').addEventListener('click', ()=> renderSetup());
+      document.getElementById('capsuleDeleteBtn').addEventListener('click', async ()=>{
+        if(!confirm('Sigur vrei să ștergi capsula?')) return;
+        await deleteCapsule();
+        renderView();
+      });
     }
   }
 
-  function renderSetup(){
+  function renderSetup(existing){
     contentDiv.innerHTML = `
       <form class="puzzle-setup-form" id="capsuleForm">
         <span class="empty-note">Scrie un mesaj care rămâne sigilat până la o dată aleasă de tine</span>
         <textarea id="capsuleMessage" rows="4" placeholder="Scrie mesajul aici..." required
-          style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:10px; font-size:0.9rem; background:var(--paper-dark);"></textarea>
-        <input type="date" id="capsuleDate" required style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:8px; background:var(--paper-dark);">
-        <button type="submit" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none; align-self:flex-start;">Sigilează capsula</button>
+          style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:10px; font-size:0.9rem; background:var(--paper-dark);">${existing ? existing.message : ''}</textarea>
+        <input type="date" id="capsuleDate" required value="${existing ? existing.unlockDate : ''}" style="font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:8px; background:var(--paper-dark);">
+        <div style="display:flex; gap:10px;">
+          <button type="submit" class="hero-edit-btn" style="background:var(--accent); color:var(--paper); border:none;">${existing ? 'Salvează modificările' : 'Sigilează capsula'}</button>
+          ${existing ? '<button type="button" id="capsuleCancelBtn" class="hero-edit-btn" style="background:var(--paper-dark); color:var(--ink);">Renunță</button>' : ''}
+        </div>
         <div class="upload-status" id="capsuleStatus"></div>
       </form>`;
+    if(existing){
+      document.getElementById('capsuleCancelBtn').addEventListener('click', renderView);
+    }
     document.getElementById('capsuleForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
       const message = document.getElementById('capsuleMessage').value.trim();
@@ -1574,7 +1654,26 @@ async function initEnvelopes(){
       el.addEventListener('click', async ()=>{
         const idx = Number(el.dataset.index);
         const env = envelopes[idx];
-        document.getElementById('envelopeMessage').innerHTML = `<div class="envelope-message-box">💌 ${env.text}</div>`;
+        document.getElementById('envelopeMessage').innerHTML = `
+          <div class="envelope-message-box">
+            💌 ${env.text}
+            <div style="margin-top:10px;">
+              <button class="delete-btn" id="editEnvelopeBtn" style="margin-right:16px;">✏️ editează</button>
+              <button class="delete-btn" id="deleteEnvelopeBtn">🗑️ șterge</button>
+            </div>
+          </div>`;
+        document.getElementById('editEnvelopeBtn').addEventListener('click', async ()=>{
+          const newText = prompt('Editează mesajul plicului:', env.text);
+          if(newText && newText.trim()){
+            await editEnvelope(env.id, newText.trim());
+            render();
+          }
+        });
+        document.getElementById('deleteEnvelopeBtn').addEventListener('click', async ()=>{
+          if(!confirm('Sigur vrei să ștergi acest plic?')) return;
+          await deleteEnvelope(env.id);
+          render();
+        });
         if(!env.opened){
           await openEnvelope(env.id);
           el.classList.add('opened');
@@ -1635,7 +1734,7 @@ async function initTravelMap(){
   if(!contentDiv) return;
   contentDiv.innerHTML = `
     <p class="empty-note" style="margin-bottom:10px;">Dă click pe hartă ca să adaugi un loc</p>
-    <div class="countdown-map" id="travelMap" style="height:280px;"></div>
+    <div class="countdown-map" id="travelMap"></div>
     <div id="travelSpotsList" style="margin-top:14px;"></div>
   `;
   const mapEl = document.getElementById('travelMap');
@@ -1651,9 +1750,19 @@ async function initTravelMap(){
     listDiv.innerHTML = spots.length ? spots.map(s=>`
       <div class="journal-entry">
         <strong>${s.name}</strong> — ${s.note || ''}
+        <button class="delete-btn" data-edit="${s.id}" data-name="${s.name.replace(/"/g,'&quot;')}" data-note="${(s.note||'').replace(/"/g,'&quot;')}" style="margin-right:16px;">✏️ editează</button>
         <button class="delete-btn" data-id="${s.id}">🗑️ șterge</button>
       </div>`).join('') : '<p class="empty-note">Niciun loc adăugat încă.</p>';
-    listDiv.querySelectorAll('.delete-btn').forEach(btn=>{
+    listDiv.querySelectorAll('[data-edit]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const newName = prompt('Numele locului:', btn.dataset.name);
+        if(!newName) return;
+        const newNote = prompt('Notița:', btn.dataset.note) || '';
+        await editTravelSpot(btn.dataset.edit, newName.trim(), newNote.trim());
+        loadAndRenderSpots();
+      });
+    });
+    listDiv.querySelectorAll('.delete-btn[data-id]').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
         await deleteTravelSpot(btn.dataset.id);
         loadAndRenderSpots();
@@ -1694,8 +1803,30 @@ async function initDailyQuestion(){
     `;
     const answers = await loadTodayAnswers(dateKey);
     document.getElementById('answersList').innerHTML = answers.length
-      ? answers.map(a=>`<div class="comment-item"><div class="c-meta">${a.name}</div>${a.text}</div>`).join('')
+      ? answers.map(a=>`
+        <div class="comment-item">
+          <div class="c-meta">${a.name}</div>
+          ${a.text}
+          <button class="delete-btn" data-edit="${a.id}" data-text="${a.text.replace(/"/g,'&quot;')}" style="margin-right:16px;">✏️ editează</button>
+          <button class="delete-btn" data-id="${a.id}">🗑️ șterge</button>
+        </div>`).join('')
       : '<p class="empty-note">Niciun răspuns încă azi.</p>';
+    document.querySelectorAll('#answersList [data-edit]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const newText = prompt('Editează răspunsul:', btn.dataset.text);
+        if(newText && newText.trim()){
+          await editTodayAnswer(btn.dataset.edit, newText.trim());
+          render();
+        }
+      });
+    });
+    document.querySelectorAll('#answersList .delete-btn[data-id]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm('Sigur vrei să ștergi acest răspuns?')) return;
+        await deleteTodayAnswer(btn.dataset.id);
+        render();
+      });
+    });
 
     document.getElementById('submitAnswer').addEventListener('click', async ()=>{
       const name = document.getElementById('answerName').value.trim() || 'Anonim';
@@ -1711,42 +1842,82 @@ async function initDailyQuestion(){
 async function initMood(){
   const contentDiv = document.getElementById('moodContent');
   if(!contentDiv) return;
-  const moodEmojis = ['😊','😍','😴','😔','🥰','😤','🤒','🥳','😌','😭'];
+
+  const moodOptions = [
+    { e:'🥰', l:'iubire' }, { e:'😍', l:'dor' }, { e:'😊', l:'bine' }, { e:'🥳', l:'fericit' },
+    { e:'😌', l:'calm' }, { e:'😴', l:'obosit' }, { e:'😔', l:'trist' }, { e:'😤', l:'frustrat' },
+    { e:'🤒', l:'bolnav' }, { e:'😭', l:'plâns' }, { e:'📚', l:'ocupat' }, { e:'✈️', l:'pe drum' }
+  ];
+  const needsSupport = ['😔','😤','🤒','😭','😴'];
+
+  async function renderPerson(person, label){
+    const mood = await loadMood();
+    const data = mood && mood[person];
+    const history = await loadMoodHistory(person, 7);
+    const nudge = data && needsSupport.includes(data.emoji)
+      ? `<div class="mood-nudge">${label} pare să nu aibă cea mai bună zi — poate merită un mesaj de încurajare 💜</div>`
+      : '';
+    return `
+      <div class="mood-person">
+        <span class="mood-emoji-big">${data ? data.emoji : '❔'}</span>
+        <div class="mood-name">${label}</div>
+        <div class="mood-time">${data ? new Date(data.updatedAt).toLocaleString('ro-RO') : ''}</div>
+        ${data && data.note ? `<div class="mood-note">"${data.note}"</div>` : ''}
+        <div class="mood-history-strip">
+          ${history.map(h=>`<span class="mood-history-item" title="${h.note||''}">${h.emoji}</span>`).join('')}
+        </div>
+        ${nudge}
+      </div>`;
+  }
 
   async function render(){
-    const mood = await loadMood();
-    const dan = mood && mood.dan;
-    const stefan = mood && mood.stefan;
+    const danHTML = await renderPerson('dan', 'Dan');
+    const stefanHTML = await renderPerson('stefan', 'Ștefan');
     contentDiv.innerHTML = `
-      <div class="mood-row">
-        <div class="mood-person">
-          <span class="mood-emoji-big">${dan ? dan.emoji : '❔'}</span>
-          <div class="mood-name">Dan</div>
-          <div class="mood-time">${dan ? new Date(dan.updatedAt).toLocaleString('ro-RO') : ''}</div>
-        </div>
-        <div class="mood-person">
-          <span class="mood-emoji-big">${stefan ? stefan.emoji : '❔'}</span>
-          <div class="mood-name">Ștefan</div>
-          <div class="mood-time">${stefan ? new Date(stefan.updatedAt).toLocaleString('ro-RO') : ''}</div>
-        </div>
-      </div>
-      <p class="empty-note" style="text-align:center; margin-top:8px;">Cine ești?</p>
+      <div class="mood-row">${danHTML}${stefanHTML}</div>
+      <p class="empty-note" style="text-align:center; margin-top:14px;">Cine ești?</p>
       <div class="mood-select-row" id="whoAmI">
         <button data-who="dan" class="delete-btn" style="opacity:1; border:1.5px solid var(--lilac-line); border-radius:999px; padding:6px 14px;">Dan</button>
         <button data-who="stefan" class="delete-btn" style="opacity:1; border:1.5px solid var(--lilac-line); border-radius:999px; padding:6px 14px;">Ștefan</button>
       </div>
-      <div class="mood-select-row" id="moodPicker" style="display:none;"></div>
+      <div id="moodPickerWrap"></div>
+      <div class="puzzle-actions">
+        <button class="hero-edit-btn" id="moodResetBtn" style="background:var(--paper-dark); color:var(--ink);">🔄 resetează pagina</button>
+      </div>
     `;
+    document.getElementById('moodResetBtn').addEventListener('click', async ()=>{
+      if(!confirm('Sigur vrei să ștergi complet starea curentă și tot istoricul?')) return;
+      await resetMood();
+      render();
+    });
     document.querySelectorAll('#whoAmI button').forEach(b=>{
       b.addEventListener('click', ()=>{
         const who = b.dataset.who;
-        const picker = document.getElementById('moodPicker');
-        picker.style.display = 'flex';
-        picker.innerHTML = moodEmojis.map(e=>`<button data-emoji="${e}">${e}</button>`).join('');
-        picker.querySelectorAll('button').forEach(eb=>{
-          eb.addEventListener('click', async ()=>{
-            await saveMoodFor(who, eb.dataset.emoji);
-            render();
+        const wrap = document.getElementById('moodPickerWrap');
+        wrap.innerHTML = `
+          <div class="mood-emoji-grid" id="moodPicker">
+            ${moodOptions.map(o=>`
+              <div class="mood-emoji-option" data-emoji="${o.e}">
+                ${o.e}<span class="lbl">${o.l}</span>
+              </div>`).join('')}
+          </div>
+        `;
+        document.querySelectorAll('#moodPicker .mood-emoji-option').forEach(el=>{
+          el.addEventListener('click', ()=>{
+            const emoji = el.dataset.emoji;
+            wrap.innerHTML = `
+              <form class="upload-photo-form" id="moodNoteForm" style="margin-top:12px;">
+                <span class="empty-note">${emoji} — vrei să adaugi și de ce? (opțional)</span>
+                <input type="text" id="moodNoteInput" placeholder="ex: mi-e dor de tine">
+                <button type="submit">Salvează starea</button>
+              </form>
+            `;
+            document.getElementById('moodNoteForm').addEventListener('submit', async (e)=>{
+              e.preventDefault();
+              const note = document.getElementById('moodNoteInput').value.trim();
+              await saveMoodFor(who, emoji, note);
+              render();
+            });
           });
         });
       });
@@ -1769,6 +1940,7 @@ async function initJournal(){
               ${en.author} · ${new Date(en.timestamp).toLocaleDateString('ro-RO')}
             </div>
             ${en.text}
+            <button class="delete-btn" data-edit="${en.id}" data-text="${en.text.replace(/"/g,'&quot;')}" style="margin-right:16px;">✏️ editează</button>
             <button class="delete-btn" data-id="${en.id}">🗑️ șterge</button>
           </div>`).join('') : '<p class="empty-note">Niciun jurnal încă — scrie primul mai jos.</p>'}
       </div>
@@ -1778,7 +1950,16 @@ async function initJournal(){
         <button id="submitJournal">Adaugă în jurnal</button>
       </div>
     `;
-    document.querySelectorAll('#journalList .delete-btn').forEach(btn=>{
+    document.querySelectorAll('#journalList [data-edit]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const newText = prompt('Editează însemnarea:', btn.dataset.text);
+        if(newText && newText.trim()){
+          await editJournalEntry(btn.dataset.edit, newText.trim());
+          render();
+        }
+      });
+    });
+    document.querySelectorAll('#journalList .delete-btn[data-id]').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
         if(!confirm('Sigur vrei să ștergi această însemnare?')) return;
         await deleteJournalEntry(btn.dataset.id);
