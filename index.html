@@ -1719,7 +1719,7 @@ function viewJocuriMenu(){
   </div>
   <div class="game-card" style="margin-top:34px; max-width:420px;">
     <h3 class="game-title">🎵 Muzica de fundal</h3>
-    <div class="game-sub">// pune un link direct către un mp3</div>
+    <div class="game-sub">// pune un link direct de pe youtube</div>
     <div id="musicSettingsContent"><p class="empty-note">Se încarcă...</p></div>
   </div>`;
 }
@@ -2400,16 +2400,16 @@ async function initWeather(){
     <div class="dual-clock-wrap">
       <div class="clock-card">
         <div class="clock-face" id="weatherClujFace"><span class="clock-icon">⏳</span></div>
-        <div class="clock-city">Cluj-Napoca</div>
+        <div class="clock-city">cluj-napoca</div>
         <div class="clock-date" id="weatherClujTemp">—</div>
       </div>
       <div class="clock-card">
         <div class="clock-face" id="weatherNYFace"><span class="clock-icon">⏳</span></div>
-        <div class="clock-city">New York</div>
+        <div class="clock-city">new york</div>
         <div class="clock-date" id="weatherNYTemp">—</div>
       </div>
     </div>
-    <p class="empty-note" style="text-align:center; margin-top:10px;">Actualizat live, de la Open-Meteo</p>
+    <p class="empty-note" style="text-align:center; margin-top:10px;">in suflet facem sa fie soare!</p>
   `;
   try{
     const [clujRes, nyRes] = await Promise.all([
@@ -2460,7 +2460,7 @@ async function initClock(){
     const clujZoned = new Date(now.toLocaleString('en-US', {timeZone:'Europe/Bucharest'}));
     const nyZoned = new Date(now.toLocaleString('en-US', {timeZone:'America/New_York'}));
     const diffHours = Math.round((clujZoned - nyZoned) / 3600000);
-    document.getElementById('clockDiff').textContent = `New York e cu ${diffHours} ore în urma Clujului`;
+    document.getElementById('clockDiff').textContent = `new york e cu ${diffHours} ore în urma clujului, multicel dar ne descurcam`;
   }
   update();
   window._clockInterval = setInterval(update, 1000);
