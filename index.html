@@ -273,12 +273,18 @@
   .back-link:hover{text-decoration:underline;}
 
  .card-grid{display:grid; grid-template-columns:repeat(auto-fill, 210px); justify-content:start; gap:26px;}
-  .card{
+.card{
     background:var(--paper); border:1px solid var(--lilac-line);
     box-shadow:0 10px 24px var(--cream-shadow); padding:16px; border-radius:4px;
     transition:transform .25s; cursor:pointer; text-decoration:none; color:inherit; display:block;
   }
   .card:hover{transform:translateY(-5px) rotate(-0.5deg);}
+  .game-cover-edit{
+    position:absolute; top:22px; right:22px; z-index:3;
+    background:rgba(43,31,69,0.75); color:#fff; border:none; border-radius:50%;
+    width:28px; height:28px; font-size:0.85rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .game-cover-edit:hover{ background:var(--accent-deep); }
   .photo-slot{
     width:100%; aspect-ratio:4/5; border:2px dashed var(--lilac-line);
     background:var(--paper-dark); display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -491,10 +497,53 @@
     color:var(--accent-deep); padding:14px 4px 18px;
   }
 
-  .journal-entry{
+.journal-entry{
     background:var(--paper-dark); border-left:3px solid var(--accent); border-radius:4px;
     padding:12px 16px; margin-bottom:10px; font-size:0.92rem;
   }
+
+  .journal-stats{ text-align:center; font-family:'Special Elite', monospace; font-size:0.8rem; color:var(--accent); margin-bottom:18px; }
+  .journal-filter-row{ display:flex; gap:8px; justify-content:center; margin-bottom:22px; flex-wrap:wrap; }
+  .journal-filter-row button{
+    font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); background:var(--paper-dark);
+    padding:7px 16px; border-radius:999px; cursor:pointer; font-size:0.85rem; transition:.2s;
+  }
+  .journal-filter-row button.active{ background:var(--accent); color:var(--paper); border-color:var(--accent); }
+  .journal-timeline{ position:relative; padding-left:26px; }
+  .journal-timeline::before{
+    content:""; position:absolute; left:8px; top:6px; bottom:6px; width:2px;
+    background-image:repeating-linear-gradient(180deg, var(--lilac-line) 0 6px, transparent 6px 12px);
+  }
+  .journal-card{
+    position:relative; background:var(--paper); border:1px solid var(--lilac-line); border-radius:10px;
+    padding:16px 18px; margin-bottom:20px; box-shadow:0 8px 18px var(--cream-shadow);
+  }
+  .journal-card::before{
+    content:""; position:absolute; left:-26px; top:20px; width:11px; height:11px;
+    border-radius:50%; background:var(--accent); border:2px solid var(--paper);
+  }
+  .journal-card-header{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .journal-avatar{
+    width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:'Special Elite', monospace; color:#fff; font-size:0.85rem; flex-shrink:0;
+  }
+  .journal-avatar.author-dan{ background:var(--accent); }
+  .journal-avatar.author-stefan{ background:#3F7873; }
+  .journal-avatar.author-other{ background:var(--accent-deep); }
+  .journal-meta-name{ font-family:'Special Elite', monospace; font-size:0.85rem; color:var(--ink); }
+  .journal-meta-date{ font-size:0.72rem; color:var(--accent); opacity:0.85; }
+  .journal-mood-tag{ margin-left:auto; font-size:1.2rem; }
+  .journal-photo{ width:100%; max-width:280px; border-radius:8px; margin-top:10px; display:block; }
+  .journal-text{ margin-top:4px; line-height:1.65; }
+  .journal-card-actions{ margin-top:10px; }
+  .journal-mood-picker{ display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
+  .journal-mood-picker button{
+    font-size:1.2rem; background:var(--paper-dark); border:1.5px solid var(--lilac-line);
+    border-radius:8px; padding:5px 8px; cursor:pointer;
+  }
+  .journal-mood-picker button.picked{ border-color:var(--accent-deep); background:var(--accent); }
+  .journal-empty{ text-align:center; padding:30px 10px; }
+  .journal-empty-icon{ font-size:2.6rem; margin-bottom:10px; }
 
   .form-q{margin-bottom:20px;}
   .form-q p{font-weight:600; margin-bottom:8px;}
@@ -828,6 +877,22 @@ async function resetMood(){
   await batch.commit();
 }
 
+async function loadGameCovers(){
+  const doc = await db.collection('site').doc('gameCovers').get();
+  return doc.exists ? doc.data() : {};
+}
+async function saveGameCover(gameId, url){
+  await db.collection('site').doc('gameCovers').set({ [gameId]: url }, { merge:true });
+}
+
+async function loadMusicUrl(){
+  const doc = await db.collection('site').doc('music').get();
+  return doc.exists ? (doc.data().url || '') : '';
+}
+async function saveMusicUrl(url){
+  await db.collection('site').doc('music').set({ url });
+}
+
 /* ============ JURNALUL NOSTRU ============ */
 async function loadJournal(){
   const snapshot = await db.collection('journal').get();
@@ -835,8 +900,8 @@ async function loadJournal(){
   list.sort((a,b)=>b.timestamp - a.timestamp);
   return list;
 }
-async function addJournalEntry(author, text){
-  await db.collection('journal').add({ author, text, timestamp: Date.now() });
+async function addJournalEntry(author, text, photo, mood){
+  await db.collection('journal').add({ author, text, photo: photo || '', mood: mood || '', timestamp: Date.now() });
 }
 async function deleteJournalEntry(id){
   await db.collection('journal').doc(id).delete();
@@ -957,9 +1022,10 @@ async function router(){
     renderNav('jocuri');
     view.innerHTML = viewGameDetail(parts[1]);
     initGameById(parts[1]);
-  } else if(parts[0] === 'jocuri'){
+ } else if(parts[0] === 'jocuri'){
     renderNav('jocuri');
     view.innerHTML = viewJocuriMenu();
+    initJocuriMenu();
   } else {
     renderNav('');
     view.innerHTML = viewAcasa();
@@ -1391,7 +1457,7 @@ async function refreshGallery(){
           <div class="card-caption">${p.caption || ''}</div>
           <button class="delete-btn" data-id="${p.id}">🗑️ șterge</button>
         </div>`).join('')
-      : '<p class="empty-note">Nicio poză adăugată încă aici — fiți primii.</p>';
+      : '<p class="empty-note">inca nu avem pozici pt aceasta luna, urmeste</p>';
 
     galleryDiv.querySelectorAll('.photo-slot').forEach(slot=>{
       slot.addEventListener('click', ()=>{
@@ -1486,15 +1552,21 @@ const gamesList = [
 
 function viewJocuriMenu(){
   return `
-  <h2 class="section-title">hai sa ne jucaaaam</h2>
-  <p class="section-sub">// alege din ce gasesti mai jos, mai inventam joculete pe parcurs</p>
+  <h2 class="section-title">Joculețe de îndrăgostiți</h2>
+  <p class="section-sub">// alege o activitate</p>
   <div class="card-grid">
     ${gamesList.map(g=>`
-      <a class="card" href="#/jocuri/${g.id}">
-        <div class="photo-slot small"><span class="icon">${g.icon}</span></div>
+      <a class="card" href="#/jocuri/${g.id}" style="position:relative;">
+        <div class="photo-slot small" data-gameid="${g.id}"><span class="icon">${g.icon}</span></div>
+        <button type="button" class="game-cover-edit" data-gameid="${g.id}" title="Pune o poză">📷</button>
         <div class="card-label">${g.title}</div>
         <div class="card-caption">${g.desc}</div>
       </a>`).join('')}
+  </div>
+  <div class="game-card" style="margin-top:34px; max-width:420px;">
+    <h3 class="game-title">🎵 Muzica de fundal</h3>
+    <div class="game-sub">// pune un link direct către un mp3</div>
+    <div id="musicSettingsContent"><p class="empty-note">Se încarcă...</p></div>
   </div>`;
 }
 
@@ -1930,26 +2002,92 @@ async function initJournal(){
   const contentDiv = document.getElementById('journalContent');
   if(!contentDiv) return;
 
+  const journalMoods = ['😊','😍','😔','😴','🥳','😤','😌','✈️'];
+  let currentFilter = 'toate';
+
+  function formatJournalDate(ts){
+    const d = new Date(ts);
+    const now = new Date();
+    const yesterday = new Date(); yesterday.setDate(now.getDate()-1);
+    const sameDay = (a,b)=> a.toDateString()===b.toDateString();
+    const time = d.toLocaleTimeString('ro-RO', { hour:'2-digit', minute:'2-digit' });
+    if(sameDay(d, now)) return `azi, ${time}`;
+    if(sameDay(d, yesterday)) return `ieri, ${time}`;
+    return d.toLocaleDateString('ro-RO', { day:'numeric', month:'long', year:'numeric' });
+  }
+  function avatarClass(author){
+    const a = author.toLowerCase();
+    if(a === 'dan') return 'author-dan';
+    if(a === 'ștefan' || a === 'stefan') return 'author-stefan';
+    return 'author-other';
+  }
+
   async function render(){
-    const entries = await loadJournal();
+    const allEntries = await loadJournal();
+    const entries = currentFilter === 'toate' ? allEntries : allEntries.filter(en=>en.author.toLowerCase() === currentFilter);
+    const authors = [...new Set(allEntries.map(en=>en.author))];
+
     contentDiv.innerHTML = `
-      <div id="journalList">
+      <div class="journal-stats">📖 ${allEntries.length} amintiri scrise împreună</div>
+      <div class="journal-filter-row" id="journalFilters">
+        <button data-filter="toate" class="${currentFilter==='toate'?'active':''}">Toate</button>
+        ${authors.map(a=>`<button data-filter="${a.toLowerCase()}" class="${currentFilter===a.toLowerCase()?'active':''}">${a}</button>`).join('')}
+      </div>
+
+      <div id="journalList" class="journal-timeline">
         ${entries.length ? entries.map(en=>`
-          <div class="journal-entry">
-            <div class="c-meta" style="font-family:'Special Elite', monospace; font-size:0.72rem; color:var(--accent-deep); margin-bottom:4px;">
-              ${en.author} · ${new Date(en.timestamp).toLocaleDateString('ro-RO')}
+          <div class="journal-card">
+            <div class="journal-card-header">
+              <div class="journal-avatar ${avatarClass(en.author)}">${en.author.slice(0,1).toUpperCase()}</div>
+              <div>
+                <div class="journal-meta-name">${en.author}</div>
+                <div class="journal-meta-date">${formatJournalDate(en.timestamp)}</div>
+              </div>
+              ${en.mood ? `<div class="journal-mood-tag">${en.mood}</div>` : ''}
             </div>
-            ${en.text}
-            <button class="delete-btn" data-edit="${en.id}" data-text="${en.text.replace(/"/g,'&quot;')}" style="margin-right:16px;">✏️ editează</button>
-            <button class="delete-btn" data-id="${en.id}">🗑️ șterge</button>
-          </div>`).join('') : '<p class="empty-note">Niciun jurnal încă — scrie primul mai jos.</p>'}
+            ${en.photo ? `<img class="journal-photo" src="${en.photo}" alt="">` : ''}
+            <div class="journal-text">${en.text}</div>
+            <div class="journal-card-actions">
+              <button class="delete-btn" data-edit="${en.id}" data-text="${en.text.replace(/"/g,'&quot;')}" style="margin-right:16px;">✏️ editează</button>
+              <button class="delete-btn" data-id="${en.id}">🗑️ șterge</button>
+            </div>
+          </div>`).join('') : `
+          <div class="journal-empty">
+            <div class="journal-empty-icon">📖</div>
+            <p class="empty-note">Niciun jurnal încă în această categorie — scrie primul mai jos.</p>
+          </div>`}
       </div>
-      <div class="comment-form" style="margin-top:16px;">
-        <input type="text" id="journalAuthor" placeholder="Numele tău">
-        <textarea id="journalText" rows="4" placeholder="Ce ai făcut azi?"></textarea>
-        <button id="submitJournal">Adaugă în jurnal</button>
-      </div>
+
+      <form class="upload-photo-form" id="journalForm" style="margin-top:16px;">
+        <input type="text" id="journalAuthor" placeholder="Numele tău" required style="flex:1 1 100%;">
+        <textarea id="journalText" rows="4" placeholder="Ce ai făcut azi?" required
+          style="flex:1 1 100%; font-family:'Poppins', sans-serif; border:1.5px solid var(--lilac-line); border-radius:6px; padding:10px; font-size:0.9rem; background:var(--paper-dark);"></textarea>
+        <span class="empty-note" style="flex:1 1 100%;">Cum te-ai simțit? (opțional)</span>
+        <div class="journal-mood-picker" id="journalMoodPicker">
+          ${journalMoods.map(m=>`<button type="button" data-mood="${m}">${m}</button>`).join('')}
+        </div>
+        <input type="file" id="journalPhoto" accept="image/*">
+        <button type="submit">Adaugă în jurnal</button>
+        <div class="upload-status" id="journalStatus"></div>
+      </form>
     `;
+
+    document.querySelectorAll('#journalFilters button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        currentFilter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    let selectedMood = '';
+    document.querySelectorAll('#journalMoodPicker button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('#journalMoodPicker button').forEach(b=>b.classList.remove('picked'));
+        if(selectedMood === btn.dataset.mood){ selectedMood = ''; }
+        else { selectedMood = btn.dataset.mood; btn.classList.add('picked'); }
+      });
+    });
+
     document.querySelectorAll('#journalList [data-edit]').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
         const newText = prompt('Editează însemnarea:', btn.dataset.text);
@@ -1966,17 +2104,30 @@ async function initJournal(){
         render();
       });
     });
-    document.getElementById('submitJournal').addEventListener('click', async ()=>{
+
+    document.getElementById('journalForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
       const author = document.getElementById('journalAuthor').value.trim() || 'Anonim';
       const text = document.getElementById('journalText').value.trim();
+      const fileInput = document.getElementById('journalPhoto');
+      const statusEl = document.getElementById('journalStatus');
       if(!text) return;
-      await addJournalEntry(author, text);
-      render();
+      statusEl.textContent = 'Se salvează...';
+      try{
+        let photoUrl = '';
+        if(fileInput.files[0]){
+          photoUrl = await uploadPhotoToImgBB(fileInput.files[0]);
+        }
+        await addJournalEntry(author, text, photoUrl, selectedMood);
+        render();
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
     });
   }
   render();
 }
-
+  
 async function initDrawingGallery(){
   const contentDiv = document.getElementById('drawingGalleryContent');
   if(!contentDiv) return;
@@ -1993,6 +2144,67 @@ async function initDrawingGallery(){
       document.getElementById('lightbox').classList.add('show');
     });
   });
+}
+
+async function initJocuriMenu(){
+  const covers = await loadGameCovers();
+  document.querySelectorAll('.photo-slot[data-gameid]').forEach(slot=>{
+    const url = covers[slot.dataset.gameid];
+    if(url){
+      slot.style.backgroundImage = `url('${url}')`;
+      slot.innerHTML = '';
+    }
+  });
+
+  document.querySelectorAll('.game-cover-edit').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      const gameId = btn.dataset.gameid;
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.addEventListener('change', async ()=>{
+        if(!fileInput.files[0]) return;
+        btn.textContent = '⏳';
+        try{
+          const url = await uploadPhotoToImgBB(fileInput.files[0]);
+          await saveGameCover(gameId, url);
+          const slot = document.querySelector(`.photo-slot[data-gameid="${gameId}"]`);
+          if(slot){ slot.style.backgroundImage = `url('${url}')`; slot.innerHTML = ''; }
+        }catch(err){
+          alert('Eroare: ' + err.message);
+        }
+        btn.textContent = '📷';
+      });
+      fileInput.click();
+    });
+  });
+
+  const musicDiv = document.getElementById('musicSettingsContent');
+  if(musicDiv){
+    const currentUrl = await loadMusicUrl();
+    musicDiv.innerHTML = `
+      <form class="upload-photo-form" id="musicForm">
+        <input type="text" id="musicUrlInput" placeholder="https://... link direct către mp3" value="${currentUrl.replace(/"/g,'&quot;')}" style="flex:1 1 100%;">
+        <button type="submit">Salvează melodia</button>
+        <div class="upload-status" id="musicStatus"></div>
+      </form>
+    `;
+    document.getElementById('musicForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const url = document.getElementById('musicUrlInput').value.trim();
+      const statusEl = document.getElementById('musicStatus');
+      statusEl.textContent = 'Se salvează...';
+      try{
+        await saveMusicUrl(url);
+        if(bgAudio){ bgAudio.src = url; }
+        statusEl.textContent = 'Salvat! 💜';
+      }catch(err){
+        statusEl.textContent = 'Eroare: ' + err.message;
+      }
+    });
+  }
 }
 
 function initGameById(id){
@@ -2513,7 +2725,7 @@ async function initMemory(){
         if(a.dataset.photo === b.dataset.photo){
           a.classList.add('matched'); b.classList.add('matched');
           matchesFound++; flippedCards = []; lockBoard = false;
-          if(matchesFound === photos.length) memStatus.textContent = 'Ai găsit toate perechile! Exact ca noi doi 💜';
+          if(matchesFound === photos.length) memStatus.textContent = 'bine iubituleeee!!! 💜';
         } else {
           setTimeout(()=>{ a.classList.remove('flip'); b.classList.remove('flip'); flippedCards = []; lockBoard = false; }, 800);
         }
@@ -2648,6 +2860,11 @@ document.getElementById('lightbox').addEventListener('click', (e)=>{
 const musicBtn = document.getElementById('musicToggle');
 const bgAudio = document.getElementById('bgAudio');
 let playing = false;
+
+loadMusicUrl().then(url=>{
+  if(url) bgAudio.src = url;
+}).catch(()=>{});
+
 musicBtn.addEventListener('click', ()=>{
   if(!playing){
     bgAudio.play().catch(()=>{});
