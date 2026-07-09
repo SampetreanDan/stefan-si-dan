@@ -208,12 +208,12 @@
       repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, transparent 3px, transparent 6px);
     pointer-events:none;
   }
-  .pixel-hearts{
+.pixel-hearts{
     font-family:'Press Start 2P', monospace;
-    font-size:1.4rem;
-    letter-spacing:8px;
+    font-size:2.4rem;
+    letter-spacing:14px;
     color:#E8A6D0;
-    margin-bottom:22px;
+    margin-bottom:26px;
     animation: pixelBlink 1.6s steps(2) infinite;
   }
   @keyframes pixelBlink{ 0%,100%{opacity:1;} 50%{opacity:0.55;} }
@@ -224,6 +224,10 @@
     text-shadow: 4px 4px 0 var(--accent-deep);
     margin-bottom:28px;
     line-height:1.6;
+  }
+ .pixel-flower{
+    display:inline-block; vertical-align:middle; font-size:0.75em;
+    position:relative; top:-0.05em;
   }
   .pixel-question{
     font-family:'Press Start 2P', monospace;
@@ -600,9 +604,10 @@ async function router(){
     renderNav('amintiri');
     view.innerHTML = viewAnDetail(parts[1]);
     applyFirstPhotoThumbnails(view);
-  } else if(parts[0] === 'amintiri'){
+} else if(parts[0] === 'amintiri'){
     renderNav('amintiri');
     view.innerHTML = viewAniList();
+    applyFirstPhotoThumbnails(view);
   } else if(parts[0] === 'poezii' && parts[1]){
     renderNav('poezii');
     view.innerHTML = viewPoemDetail(parts[1]);
@@ -647,7 +652,7 @@ function viewAcasa(){
   <div id="pixelGateWrap">
     <div class="pixel-gate" id="pixelGate">
       <div class="pixel-hearts">♥ ♥ ♥ ♥ ♥</div>
-      <div class="pixel-title">saluuutii tutii frutii 🌸 </div>
+      <div class="pixel-title">saluuutii tutii frutii <span class="pixel-flower">🌸</span></div>
       <div class="pixel-question">ti-am pregatit o mica surpriza,<br>vrei sa o vezi?</div>
       <div class="pixel-btn-row">
         <button class="pixel-btn" id="pixelYes">DA</button>
@@ -830,14 +835,13 @@ async function initHomeContent(){
   // Joculețele (aceleași funcții ca la pagina dedicată)
   initGames();
 }
-
 function viewAniList(){
   return `
   <h2 class="section-title">Amintirile noastre</h2>
   <p class="section-sub">// alege un an ca să vezi lunile lui</p>
   <div class="card-grid">
     ${albumYears.map(y=>`
-      <a class="card" href="#/amintiri/${y.id}">
+      <a class="card" href="#/amintiri/${y.id}" data-monthid="${y.id}-luna-1">
         <div class="photo-slot"><span class="icon">📅</span></div>
         <div class="card-label">${y.label}</div>
         <div class="card-caption">Începe din Ianuarie ${y.startYear}</div>
