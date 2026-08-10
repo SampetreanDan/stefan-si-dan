@@ -816,8 +816,10 @@ async function initHero(){
       <form id="heroEditForm" style="display:flex; flex-direction:column; gap:10px;">
         <input type="text" id="heroTitleInput" value="${hero.title.replace(/"/g,'&quot;')}" placeholder="Titlul"
           style="font-family:'Playfair Display', serif; font-size:1.3rem; padding:10px; border-radius:6px; border:1.5px solid var(--lilac-line);">
-        <textarea id="heroTextInput" rows="5" placeholder="Textul emoțional"
+       <textarea id="heroTextInput" rows="5" placeholder="Textul emoțional"
           style="font-family:'Poppins', sans-serif; font-size:0.95rem; padding:10px; border-radius:6px; border:1.5px solid var(--lilac-line);">${hero.text}</textarea>
+        <input type="text" id="heroEyebrowInput" value="${hero.eyebrow.replace(/"/g,'&quot;')}" placeholder="Textul mic de sus (ex: 4 luni împreună...)"
+          style="font-family:'Special Elite', monospace; font-size:0.85rem; padding:10px; border-radius:6px; border:1.5px solid var(--lilac-line);">
         <label style="color:#EDE6F7; font-size:0.8rem;">De când sunteți împreună:</label>
         <input type="date" id="heroStartDateInput" value="${hero.startDate}" style="padding:8px; border-radius:6px; border:1.5px solid var(--lilac-line);">
         <input type="file" id="heroPhotoInput" accept="image/*">
@@ -839,8 +841,9 @@ async function initHero(){
       if(!title || !text) return;
       statusEl.textContent = 'Se salvează...';
       try{
-        const startDate = document.getElementById('heroStartDateInput').value || hero.startDate;
-        const updates = { eyebrow: hero.eyebrow, title, text, photo: hero.photo || '', startDate };
+       const startDate = document.getElementById('heroStartDateInput').value || hero.startDate;
+        const eyebrow = document.getElementById('heroEyebrowInput').value.trim() || hero.eyebrow;
+        const updates = { eyebrow, title, text, photo: hero.photo || '', startDate };
         if(fileInput.files[0]){
           updates.photo = await uploadPhotoToImgBB(fileInput.files[0]);
         }
