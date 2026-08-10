@@ -1380,7 +1380,8 @@ async function initHero(){
       statusEl.textContent = 'Se salvează...';
       try{
       const startDate = document.getElementById('heroStartDateInput').value || hero.startDate;
-        const updates = { eyebrow: hero.eyebrow, title, text, photo: hero.photo || '', startDate };
+      const eyebrow = document.getElementById('heroEyebrowInput').value.trim() || hero.eyebrow;
+      const updates = { eyebrow, title, text, photo: hero.photo || '', startDate };
         if(fileInput.files[0]){
           updates.photo = await uploadPhotoToImgBB(fileInput.files[0]);
         }
