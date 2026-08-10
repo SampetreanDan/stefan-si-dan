@@ -640,6 +640,16 @@
 </head>
 <body>
 
+<div id="passwordGateWrap" style="position:fixed; inset:0; z-index:500; background:linear-gradient(160deg, #2A1F45 0%, #3B2E6B 55%, #4E3A8C 100%); display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center; padding:20px;">
+  <div style="font-size:2.5rem; margin-bottom:20px;">🔒</div>
+  <div style="font-family:'Playfair Display', serif; font-style:italic; color:#fff; font-size:1.4rem; margin-bottom:24px;">Acest loc e doar al nostru</div>
+  <form id="passwordForm" style="display:flex; flex-direction:column; gap:12px; width:260px;">
+    <input type="password" id="sitePasswordInput" placeholder="Parola" style="padding:12px; border-radius:8px; border:none; text-align:center; font-family:'Poppins', sans-serif; font-size:1rem;">
+    <button type="submit" style="padding:12px; border-radius:999px; border:none; background:#F5F1FB; color:#3B2E6B; font-family:'Special Elite', monospace; cursor:pointer; font-size:0.9rem;">Intră</button>
+    <div id="passwordError" style="color:#E8A6D0; font-size:0.8rem; min-height:1.2em;"></div>
+  </form>
+</div>
+
 <nav id="mainNav"></nav>
 <main id="app"></main>
 <footer>— din toata inima pentru stefan —</footer>
@@ -1176,8 +1186,38 @@ async function router(){
 }
 
 window.addEventListener('hashchange', router);
-window.addEventListener('DOMContentLoaded', router);
-window.addEventListener('DOMContentLoaded', trackVisitStreak);
+
+const SITE_PASSWORD = "stefanelul iubitelul"; // schimbă asta cu parola voastră
+
+function initPasswordGate(){
+  const wrap = document.getElementById('passwordGateWrap');
+  if(localStorage.getItem('siteUnlocked') === 'yes'){
+    wrap.style.display = 'none';
+    return true;
+  }
+  document.getElementById('passwordForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const val = document.getElementById('sitePasswordInput').value;
+    if(val === SITE_PASSWORD){
+      localStorage.setItem('siteUnlocked', 'yes');
+      wrap.style.display = 'none';
+      router();
+      trackVisitStreak();
+    } else {
+      document.getElementById('passwordError').textContent = 'Parolă greșită, mai încearcă';
+      document.getElementById('sitePasswordInput').value = '';
+    }
+  });
+  return false;
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  const unlocked = initPasswordGate();
+  if(unlocked){
+    router();
+    trackVisitStreak();
+  }
+});
 
 // Navigare robustă: interceptăm clicurile pe linkurile interne (#/...)
 // ca să funcționeze corect chiar dacă mediul de previzualizare
